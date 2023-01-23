@@ -1,0 +1,17 @@
+---
+import Themes from "astro-themes";
+import 'animate.css';
+---
+<Themes/>
+<div class="flex flex-col overflow-x-hidden h-screen">
+    <slot></slot>
+</div>
+<style>
+    html {
+            --backgound-color: #0D0221;
+            --text-color: #A6CFD5
+
+            color: var(--text-color);
+            background-color: var(--backgound-color);
+    }
+</style>

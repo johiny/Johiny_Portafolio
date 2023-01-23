@@ -1,0 +1,24 @@
+---
+const {left} = Astro.props;
+const {delay} = Astro.props;
+const titleClass = `relative w-fit m-0 animate__animated animate__fadeInLeft`
+const strokeColor = `rgba(194, 231, 217, ${Astro.props.opacity})`
+const {zIndex} = Astro.props
+---
+
+
+<h1 class={titleClass}><slot></slot></h1>
+
+<style define:vars={{delay, left, strokeColor, zIndex}}>
+@import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+    h1{
+        font-family: 'Anton', sans-serif;
+		font-size: 30vh;
+		color: transparent;
+        animation-delay: var(--delay);
+        left: var(--left);
+        -webkit-text-stroke: 2px var(--strokeColor);
+        z-index: var(--zIndex);
+        line-height: 110%;
+    }
+</style>

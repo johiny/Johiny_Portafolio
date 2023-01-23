@@ -1,0 +1,46 @@
+---
+import Card from "./Card.astro";
+const {img, title} = Astro.props
+---
+
+<div class='flex items-center justify-evenly flex-col hide center_card z-20 '>
+<img src={img} class='basis-1/2 w-3/4 rounded-lg'/>
+<h5 class="basis-1/4 flex items-center">{title}</h5>
+</div>
+
+
+<style>
+    div{
+		background: rgba(255, 255, 255, 0);
+		border-radius: 16px;
+		box-shadow: 0 4px 30px rgba(47, 4, 71, 0.4);
+		backdrop-filter: blur(5px);
+		-webkit-backdrop-filter: blur(5px);
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		animation-delay: var(--delay);
+        height: 50vh;
+	}
+    .slideInWithRotation {
+        animation: slide-in-bottom 0.8s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+    .slideInWithRotation:hover{
+        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
+        cursor: pointer;
+    }
+    .hide{
+        opacity: 0;
+    }
+
+    @keyframes slide-in-bottom {
+  0% {
+    -webkit-transform: translateY(30vh);
+            transform: translateY(30vh);
+    opacity: 0;
+  }
+  100% {
+    -webkit-transform: translateY(0);
+            transform: translateY(0) rotateX(12deg) rotateY(-19deg) rotateZ(1deg);
+    opacity: 1;
+  }
+}
+</style>

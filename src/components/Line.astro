@@ -1,0 +1,16 @@
+---
+const customClass = `${Astro.props.height} self-center rounded-lg line hide z-10`
+---
+
+<div class={customClass}>
+
+</div>
+
+<style>
+    div{
+        border-left: 0.3vh solid rgba(194, 231, 217, 0.6);
+    }
+    .hide{
+        opacity: 0;
+    }
+</style>

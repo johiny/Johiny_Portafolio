@@ -1,0 +1,19 @@
+---
+const cardClass = `${Astro.props.location || ""} ${Astro.props.layout || ""} z-20 animate__animated ${Astro.props.animation || ""} ${Astro.props.class || ""}`
+const {delay} = Astro.props
+---
+
+<div class={cardClass}>
+	<slot></slot>
+</div>
+<style define:vars={{delay}}>
+	div{
+		background: rgba(255, 255, 255, 0);
+		border-radius: 16px;
+		box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+		backdrop-filter: blur(5px);
+		-webkit-backdrop-filter: blur(5px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		animation-delay: var(--delay);
+	}
+</style>

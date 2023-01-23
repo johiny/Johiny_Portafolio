@@ -1,0 +1,17 @@
+---
+import Card from '../components/Card.astro';
+import WebContainer from '../layouts/WebContainer.astro';
+import BigTitle from '../components/BigTitle.astro';
+import ProfileCard from '../components/ProfileCard.astro';
+import TimeLine from '../components/TimeLine.astro';
+---
+
+<WebContainer>
+		<BigTitle left={'0vh'} delay={0} opacity={1} zIndex={13}>Hi I'm Johiny</BigTitle>
+		<BigTitle left={'20vh'} delay={'200ms'} opacity={0.5} zIndex={12}>Hi I'm Johiny</BigTitle>
+		<div class="relative">
+			<BigTitle left={'45vh'} delay={'400ms'} opacity={0.2} zIndex={11}>Hi I'm Johiny</BigTitle>
+			<ProfileCard/>
+		</div>
+		<TimeLine/>
+</WebContainer>
