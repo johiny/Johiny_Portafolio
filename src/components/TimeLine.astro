@@ -2,13 +2,16 @@
 import Memorie from '../components/Memorie.astro';
 import Line from './Line.astro';
 import firstWeb from '../media/first_web.gif'
+import sf from '../media/sf.png'
 ---
 
 <div class="flex flex-col mt-3">
     <Line height='h-20'/>
     <Memorie text_left="I still remember my first website like it was yesterday. It brings back so many memories from 2010. If I were to look at it now, I would say it looks like a crazy monkey put things here and there, but that's what made it so special to me. I was just a kid at the time, barely knowing any English or much about the web. But I'll never forget the feeling of typing in my first <head> and <body> tags." text_right="My first website may have had a disastrous layout - complete with a buggy, outdated lateral menu and a background featuring my favorite anime series from when I was a kid, but it is still filled with warm, wonderful memories. Despite the broken links and images, and unsightly blue font, I look back on it with fondness. It may not have been the most polished website, but it was mine." title='My First Web' cardImg={firstWeb}/>
     <Line height='h-60'/>
-    <Memorie text_left='aldskjfkldajhsinpnadpjanapanp' text_right='asfdkjdjnpnpinjasnpanpas' title='My First Web' cardImg={firstWeb} />
+    <Memorie text_left={`As the years passed, I decided to take web and software development more seriously. I enrolled in a national program focused on coding and software, and our first project was a group-based one. I took on the task of leading the group and working on the main layout, as well as the "ventas" section. I also created a full CRUD system in the backend. However, soon after I discovered that software development can be a true inferno. Despite the challenges, I was determined to push through and learn as much as I could.`} text_right={"As our group project progressed, things began to go wrong. The deadline for submission was approaching quickly and some members of the group failed to complete their assigned tasks, while others abandoned the project altogether. Conflicts on Git merges, which I was still learning to navigate, became a daily struggle. In the end, the project was only half-finished. Nowadays, the web is plagued with bugs and outdated dependencies,  the backend, which was created with Express and MongoDB, was hosted on Heroku, but now it's gone, and I didn't have the time to upload it to another host. Despite the challenges, I learned a lot from this experience. It helped me grow as a web developer and I gained valuable knowledge on how to handle difficult situations and collaborate with a team."} title='Sell In A Flash' cardImg={sf} />
+    <Line height='h-60'/>
+    <Memorie text_left={`As the years passed, I decided to take web and software development more seriously. I enrolled in a national program focused on coding and software, and our first project was a group-based one. I took on the task of leading the group and working on the main layout, as well as the "ventas" section. I also created a full CRUD system in the backend. However, soon after I discovered that software development can be a true inferno. Despite the challenges, I was determined to push through and learn as much as I could.`} text_right={"As our group project progressed, things began to go wrong. The deadline for submission was approaching quickly and some members of the group failed to complete their assigned tasks, while others abandoned the project altogether. Conflicts on Git merges, which I was still learning to navigate, became a daily struggle. In the end, the project was only half-finished. Nowadays, the web is plagued with bugs and outdated dependencies,  the backend, which was created with Express and MongoDB, was hosted on Heroku, but now it's gone, and I didn't have the time to upload it to another host. Despite the challenges, I learned a lot from this experience. It helped me grow as a web developer and I gained valuable knowledge on how to handle difficult situations and collaborate with a team."} title='Sell In A Flash' cardImg={sf} />
 </div>
 
 <script>
@@ -37,10 +40,19 @@ import firstWeb from '../media/first_web.gif'
                 }
                 else{
                     entry.target.classList.remove('slideInWithRotation')
+                    entry.target.classList.add('hide')
                 }
            }
         })
     })
+
     const hiddenElements = document.querySelectorAll('.hide');
     hiddenElements.forEach((element) => observer.observe(element));
+
+    const projectCards = document.querySelectorAll('.center_card');
+    projectCards.forEach((card) => card.addEventListener('animationend', () => {
+            if(card.classList.contains('slideInWithRotation')){
+                card.classList.remove('slideInWithRotation', 'hide')
+            }
+    }))
 </script>

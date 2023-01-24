@@ -3,8 +3,8 @@ import Card from "./Card.astro";
 const {img, title} = Astro.props
 ---
 
-<div class='flex items-center justify-evenly flex-col hide center_card z-20 '>
-<img src={img} class='basis-1/2 w-3/4 rounded-lg'/>
+<div class='flex items-center justify-evenly flex-col hide center_card z-20'>
+<img src={img} class='basis-1/2 w-80 p-4'/>
 <h5 class="basis-1/4 flex items-center">{title}</h5>
 </div>
 
@@ -18,17 +18,32 @@ const {img, title} = Astro.props
 		-webkit-backdrop-filter: blur(5px);
 		border: 2px solid rgba(255, 255, 255, 0.1);
 		animation-delay: var(--delay);
-        height: 50vh;
+    height: 50vh;
+    transform: rotateX(5deg) rotateY(15deg);
+    transition: all 0.6s ease;
 	}
     .slideInWithRotation {
         animation: slide-in-bottom 0.8s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
     }
-    .slideInWithRotation:hover{
-        transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) !important;
+    div:hover{
         cursor: pointer;
+        transform: rotateX(0deg) rotateY(0deg);
+    }
+    @keyframes backToNormalHover{
+      0%{
+        opacity: 1;
+        transform: rotateX(5deg) rotateY(15deg);
+      }
+      100%{
+        opacity: 1;
+        transform: rotateX(0deg) rotateY(0deg);
+      }
     }
     .hide{
         opacity: 0;
+    }
+    img{
+      border-radius: 10%;
     }
 
     @keyframes slide-in-bottom {
@@ -39,7 +54,7 @@ const {img, title} = Astro.props
   }
   100% {
     -webkit-transform: translateY(0);
-            transform: translateY(0) rotateX(12deg) rotateY(-19deg) rotateZ(1deg);
+            transform: translateY(0) rotateX(5deg) rotateY(15deg);
     opacity: 1;
   }
 }
