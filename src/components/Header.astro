@@ -1,0 +1,28 @@
+---
+import BigTitle from '../components/BigTitle.astro';
+import ProfileCard from '../components/ProfileCard.astro';
+---
+
+<div class="relative" id="headerContainer">
+    <BigTitle class="text-9xl row-start-1" delay={0} opacity={1} >Hi I'm Johiny</BigTitle>
+    <BigTitle class="text-9xl relative row-start-2 left-6" delay={'200ms'} opacity={0.5}>Hi I'm Johiny</BigTitle>
+    <BigTitle class='text-9xl relative row-start-3 left-12' delay={'400ms'} opacity={0.2}>Hi I'm Johiny</BigTitle>
+    <ProfileCard/>
+</div>
+
+<script>
+const headerContainer: HTMLElement | null = document.querySelector('#headerContainer')
+const profileCard: HTMLElement | null = document.querySelector('#profileCard')
+if(headerContainer && profileCard){
+    const normal_height = (headerContainer.offsetHeight)
+    const height_of_visible_titles = normal_height / 3
+   const observer = new ResizeObserver((entries) => {
+        entries.forEach( entry => {
+            if(entry.contentRect.height > normal_height - height_of_visible_titles ){
+                headerContainer.style.minHeight = height_of_visible_titles + entry.contentRect.height + 'px'
+            }
+        })
+   })
+   observer.observe(profileCard)
+}
+</script>

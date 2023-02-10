@@ -1,17 +1,14 @@
 ---
 import Card from "./Card.astro";
 import profileImg from '../media/profile.png'
-import  Typewriter  from "typewriter-effect/dist/core";
 ---
 
-<Card class='absolute top-0 h-80 ml-2 mr-2 w-[99%]' layout='flex flex-row' animation='animate__bounceInLeft' delay='1700ms'>
-    <div class="basis-1/4 flex">
-        <img src={profileImg} class="p-5 mt-auto rounded-full w-72"/>  
-    </div>
+<div class='absolute top-64 z-10 lg:h-80 mx-2 flex flex-col items-center lg:flex-row animate__animated animate__bounceInLeft profileCard' id="profileCard">
+        <img src={profileImg} class="p-1 lg:p-5 lg:mt-auto rounded-full w-36 lg:w-72"/>  
     <div class="basis-full flex text-center">
-        <h2 id="myDescription" class="self-center p-5"></h2>
+        <h2 id="myDescription" class="self-center p-2 lg:p-5"></h2>
     </div>
-</Card>
+</div>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
@@ -20,6 +17,18 @@ import  Typewriter  from "typewriter-effect/dist/core";
         font-weight: 100;
         line-height: 5vh;
         }
+    img{
+        transform: scaleX(-1);
+    }
+    .profileCard{
+        background-color: rgba(255, 255, 255, 0);
+		border-radius: 16px;
+		box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		animation-delay: 1700ms;
+        backdrop-filter: blur(3px);
+	}
+ 
 </style>
 
 <script>
