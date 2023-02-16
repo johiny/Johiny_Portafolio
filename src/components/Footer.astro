@@ -2,16 +2,40 @@
 
 ---
 
-    <div class="flex flex-row miniFooter justify-center self-center gap-4 py-5 w-1/3 rounded-t-lg">
-        <i class="fa-brands fa-github text-xl lg:text-2xl hover:text-xiketic hover:cursor-pointer"></i>
-        <i class="fa-brands fa-linkedin  text-xl lg:text-2xl hover:text-xiketic hover:cursor-pointer"></i>
-        <i class="fa-brands fa-twitter  text-xl lg:text-2xl hover:text-xiketic hover:cursor-pointer "></i>
+    <div class="flex flex-row miniFooter justify-center self-center gap-4 py-5 w-1/3 rounded-t-lg footerhidden animate__animated">
+        <i class="fa-brands fa-github text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer"></i>
+        <i class="fa-brands fa-linkedin  text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer"></i>
+        <i class="fa-brands fa-twitter  text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer "></i>
     </div>
 
 <style>
     .miniFooter{
-        background-color: #222831;
+        --footerColor: #222831;
+        background-color: var(--footerColor);
+    }
+    :root[data-theme='light'] .miniFooter{
+        --footerColor: #FCD8D4;
+    }
+    .footerhidden{
+        opacity: 0;
     }
 </style>
 
 <script is:inline src="https://kit.fontawesome.com/e1fe87383c.js" crossorigin="anonymous"></script>
+
+<script>
+ const footer = document.querySelector('.footerhidden')
+ if(footer){
+     const observer = new IntersectionObserver((entries)=> {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                entry.target.classList.add('animate__fadeInUp')
+            }
+            else{
+                entry.target.classList.remove('animate__fadeInUp')
+            }
+        })
+     })
+     observer.observe(footer)
+ }
+</script>
