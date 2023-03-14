@@ -1,8 +1,7 @@
 ---
 ---
-
 <div
-  class="mt-8 flex flex-col miniFooter justify-center items-center self-center w-1/3 pt-2 rounded-t-lg footerhidden animate__animated"
+  class="mt-10 bottom-0 flex flex-col miniFooter justify-center items-center self-center w-1/3 pt-2 rounded-t-lg"
 >
   <div class="flex flex-row gap-4">
     <a href="https://github.com/johiny"
@@ -23,7 +22,6 @@
   </div>
   <h6>contact@johiny.dev</h6>
 </div>
-
 <style>
   .miniFooter {
     --footerColor: #222831;
@@ -35,6 +33,7 @@
   .footerhidden {
     opacity: 0;
   }
+  
 </style>
 
 <script
@@ -43,18 +42,4 @@
   crossorigin="anonymous"
 ></script>
 
-<script>
-  const footer = document.querySelector(".footerhidden");
-  if (footer) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("animate__fadeInUp");
-        } else {
-          entry.target.classList.remove("animate__fadeInUp");
-        }
-      });
-    });
-    observer.observe(footer);
-  }
-</script>
+
