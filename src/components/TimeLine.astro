@@ -9,10 +9,13 @@ import devfunhome from '../media/devfun.png'
 import airman from '../media/airman_logo.png'
 import vetdata from "../media/vetdata.png"
 import cs50thoughts from "../media/cs50thoughts.png"
+import SortButton from './SortButton.astro';
 ---
 
-<div class="flex flex-col mt-3 dark:text-cuteWhite text-blackText max-h-max mb-10">
+<div class="relative flex flex-col mt-3 dark:text-cuteWhite text-blackText max-h-max mb-10">
+    <SortButton/>
     <Line height='h-20'/>
+<div class="relative flex flex-col dark:text-cuteWhite text-blackText max-h-max" id="timeLine">
     <Memorie text_left="I still remember my first website like it was yesterday. It brings back so many memories from 2010. If I were to look at it now, I would say it looks like a crazy monkey put things here and there, but that's what made it so special to me. I was just a kid at the time, barely knowing any English or much about the web. But I'll never forget the feeling of typing in my first <head> and <body> tags." text_right="My first website may have had a disastrous layout - complete with a buggy, outdated lateral menu and a background featuring my favorite anime series from when I was a kid, but it is still filled with warm, wonderful memories. Despite the broken links and images, and unsightly blue font, I look back on it with fondness. It may not have been the most polished website, but it was mine." title='My First Web' cardImg={firstWeb} url={'https://maquicosas.es.tl/Home.htm'}/>
     <Line height='h-60'/>
     <Memorie text_left={`As the years passed, I decided to take web and software development more seriously. I enrolled in a national program focused on coding and software, and our first project was a group-based one. I took on the task of leading the group and working on the main layout, as well as the "ventas" section. I also created a full CRUD system in the backend. However, soon after I discovered that software development can be a true inferno. Despite the challenges, I was determined to push through and learn as much as I could.`} text_right={"As our group project progressed, things began to go wrong. The deadline for submission was approaching quickly and some members of the group failed to complete their assigned tasks, while others abandoned the project altogether. Conflicts on Git merges, which I was still learning to navigate, became a daily struggle. In the end, the project was only half-finished and die after Heroku free tier was gone. Nowadays, the web is plagued with bugs but I manage to revive it and put it online again.  Despite the challenges, I learned a lot from this experience. It helped me grow as a web developer and I gained valuable knowledge on how to handle difficult situations and collaborate with a team."} title='Sell In A Flash' cardImg={sf} url={'https://sell-in-a-flash-17dp.onrender.com/'} />
@@ -30,7 +33,7 @@ import cs50thoughts from "../media/cs50thoughts.png"
     <Line height='h-60'/>
     <Memorie text_left={`My latest project, CS50Thoughts is a dynamic platform where you can share your thoughts, opinions, and experiences about the beloved CS50 course. As you explore the thoughts and opinions of fellow CS50 students, you will see their perspectives as you express your own. With the ability to like or dislike the thoughts of others, you can easily see what resonates with you and what doesn't, knowing that you're not alone in your love or hate for this transformative course. With its mesmerizing neon aesthetic, stunning animations, and powerful filtering system, you can easily find and sort through thoughts based on likes, dislikes, upload date, overall feeling, and even the CS50 edition!.`} text_right={"With these two latest projects, I've gained immense confidence in my abilities as a developer. I tackled the challenge of creating a robust backend using Express and TypeScript, ensuring every request from the frontend was validated with a schema validation library. I put my creative thinking to the test by designing a comprehensive thought schema and utilizing Prisma to connect to a scalable database like PlanetScale. I also took the initiative to implement a cooldown system for likes and dislikes! to prevent abuse from users. Through it all, these projects have shown me just how far I've come and my growth and capabilities as a developer."} title='CS50Thoughts' cardImg={cs50thoughts} url={'https://cs50thoughts.vercel.app/'}/>
 </div>
-
+</div>
 <script>
     const observer = new IntersectionObserver ((entries) => {
         entries.forEach((entry) => {

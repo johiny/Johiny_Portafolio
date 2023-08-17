@@ -1,0 +1,42 @@
+---
+---
+<div class="lg:absolute lg:right-0 lg:top-24 py-10 px-10 text-center rounded-l-lg hover:bg-darkCornflowerBlue cursor-pointer right_text hide" id="sortedButton">
+</div>
+
+<style>
+    div{
+    --cardShadow: 0 4px 30px rgba(47, 4, 71, 0.4)
+		background: rgba(255, 255, 255, 0);
+		box-shadow: var(--cardShadow);
+		backdrop-filter: blur(5px);
+		-webkit-backdrop-filter: blur(5px);
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		animation-delay: var(--delay);
+        font-family: 'Source Code Pro', monospace;
+        font-weight: 100;
+	}
+    .hide{
+        opacity: 0;
+    }
+</style>
+
+<script>
+    const sortedButton = document.querySelector("#sortedButton")
+    const timeLine = document.querySelector("#timeLine")
+    if(sortedButton){
+        sortedButton.textContent = "See The Latest First"
+        sortedButton.addEventListener('click', () => {
+            if(sortedButton.textContent == "See The Latest First")
+            {
+                timeLine?.classList.remove('flex-col')
+                timeLine?.classList.add('flex-col-reverse')
+                sortedButton.textContent = "See The Oldest First"
+            }
+            else{
+                timeLine?.classList.remove('flex-col-reverse')
+                timeLine?.classList.add('flex-col')
+                sortedButton.textContent = "See The Latest First"
+            }
+        })
+    }
+</script>

@@ -1,5 +1,4 @@
 ---
-import Card from "./Card.astro";
 const {img, title, url} = Astro.props
 ---
 <project-card class="hide center_card z-20 mx-16 md:mx-52 md:my-10 lg:my-0 lg:mx-40" data-newtab_url={url}>
@@ -23,7 +22,6 @@ const {img, title, url} = Astro.props
 		backdrop-filter: blur(5px);
 		-webkit-backdrop-filter: blur(5px);
 		border: 2px solid rgba(255, 255, 255, 0.1);
-		animation-delay: var(--delay);
     height: 50vh;
 	}
   :root[data-theme='light'] div{
