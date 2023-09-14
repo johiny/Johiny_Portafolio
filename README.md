@@ -10,7 +10,7 @@
 
 ## Introduction
 
-My modern and web portfolio powered by Astro, where I collect all my web and data analysis projects since I have memory.
+My modern web portfolio powered by Astro, where I collect all my web and data analysis projects since I have memory.
 
 ## Features
 
