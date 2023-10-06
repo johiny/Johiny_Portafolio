@@ -24,18 +24,18 @@
     const sortedButton = document.querySelector("#sortedButton")
     const timeLine = document.querySelector("#timeLine")
     if(sortedButton){
-        sortedButton.textContent = "See The Latest First"
+        sortedButton.textContent = "See The Oldest First"
         sortedButton.addEventListener('click', () => {
-            if(sortedButton.textContent == "See The Latest First")
+            if(sortedButton.textContent == "See The Oldest First")
             {
-                timeLine?.classList.remove('flex-col')
-                timeLine?.classList.add('flex-col-reverse')
-                sortedButton.textContent = "See The Oldest First"
-            }
-            else{
                 timeLine?.classList.remove('flex-col-reverse')
                 timeLine?.classList.add('flex-col')
                 sortedButton.textContent = "See The Latest First"
+            }
+            else{
+                timeLine?.classList.remove('flex-col')
+                timeLine?.classList.add('flex-col-reverse')
+                sortedButton.textContent = "See The Oldest First"
             }
         })
     }
