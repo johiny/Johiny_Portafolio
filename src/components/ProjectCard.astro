@@ -3,8 +3,8 @@ const {img, title, url} = Astro.props
 ---
 <project-card class="hide center_card z-20 mx-16 md:mx-52 md:my-10 lg:my-0 lg:mx-40" data-newtab_url={url}>
 <div class='flex items-center justify-evenly flex-col'>
-<img src={img} class='basis-1/2 w-80 p-4'/>
-<h5 class="basis-1/4 flex items-center">{title}</h5>
+<img src={img} class='basis-1/2 w-80 p-4' alt={`photo of ${title}`}/>
+<h2 class="basis-1/4 flex items-center">{title}</h2>
 </div>
 </project-card>
 

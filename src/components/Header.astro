@@ -1,6 +1,6 @@
 ---
 import BigTitle from '../components/BigTitle.astro';
-import ProfileCard from '../components/ProfileCard.astro';
+import ProfileCard from './ProfileCard.jsx';
 import { ThemeSwitch } from "astro-color-scheme";
 import TranslateButton from './TranslateButton.astro';
 ---
@@ -8,15 +8,15 @@ import TranslateButton from './TranslateButton.astro';
 <div class="relative lg:mb-5 lg:mt-5" id="headerContainer">
     <ThemeSwitch strategy='button' defaultTheme="dark">
         <div class="absolute right-0 z-30 themeSwitcher p-4 themeSwitcher">
-            <button class="bg-lightBlue h-8 w-8 absolute bg-opacity-0"/>
-            <i class="themeSwitcherIcon z-20 fa-regular fa-sun text-xl text-lightBlack dark:text-aeroBlue"></i>
+            <button class="bg-lightBlue h-8 w-8 absolute bg-opacity-0"  title="icon theme change"/>
+            <i class="themeSwitcherIcon z-20 fa-solid fa-circle-half-stroke  text-xl text-lightBlack dark:text-aeroBlue"></i>
         </div>
     </ThemeSwitch>
     <TranslateButton/>
     <BigTitle class="text-9xl lg:text-[30vh] md:text-[12vh]" delay={0} opacity={1} >Hi I'm Johiny</BigTitle>
     <BigTitle class="text-9xl relative left-6 lg:text-[30vh] md:text-[12vh] md:left-[5vh] lg:left-52" delay={'200ms'} opacity={0.5}>Hi I'm Johiny</BigTitle>
     <BigTitle class='text-9xl relative left-12 lg:text-[30vh] md:text-[12vh] md:left-[8vh] lg:left-80' delay={'400ms'} opacity={0.2}>Hi I'm Johiny</BigTitle>
-    <ProfileCard/>
+    <ProfileCard client:only/> 
 </div>
 
 <script is:inline src="https://kit.fontawesome.com/e1fe87383c.js" crossorigin="anonymous"></script>
@@ -25,13 +25,13 @@ const themeSwitcherIcon =  document.querySelector('.themeSwitcherIcon')
 const themeSwitcher = document.querySelector('.themeSwitcher')
 if(themeSwitcherIcon && themeSwitcher){
     themeSwitcher.addEventListener('click', () => {
-        if(themeSwitcherIcon.classList.contains('fa-sun')){
-            themeSwitcherIcon.classList.remove('fa-sun')
+        if(themeSwitcherIcon.classList.contains('fa-circle-half-stroke')){
+            themeSwitcherIcon.classList.remove('fa-circle-half-stroke')
             themeSwitcherIcon.classList.add('fa-moon')
         }
         else if(themeSwitcherIcon.classList.contains('fa-moon')){
             themeSwitcherIcon.classList.remove('fa-moon')
-            themeSwitcherIcon.classList.add('fa-sun')
+            themeSwitcherIcon.classList.add('fa-circle-half-stroke')
         }
     })
 }
