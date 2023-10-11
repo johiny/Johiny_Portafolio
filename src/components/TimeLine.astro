@@ -16,7 +16,7 @@ import biorescate from "../media/bio_rescate.jpg"
 import SortButton from './SortButton.astro';
 ---
 
-<div class="relative flex flex-col mt-3 dark:text-cuteWhite text-blackText max-h-max mb-10">
+<div class="relative flex flex-col mt-3 dark:text-cuteWhite text-blackText max-h-max mb-10 px-10">
     <SortButton/>
     <Line height='h-20'/>
 <div class="relative flex flex-col-reverse dark:text-cuteWhite text-blackText max-h-max" id="timeLine">
@@ -47,7 +47,13 @@ import SortButton from './SortButton.astro';
 </div>
 </div>
 <script>
-    const observer = new IntersectionObserver ((entries) => {
+    const options = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0
+    }
+
+    const observerCallback = (entries) => {
         entries.forEach((entry) => {
            if(entry.isIntersecting){
                 if(entry.target.classList.value.includes('left_text')) {
@@ -82,10 +88,13 @@ import SortButton from './SortButton.astro';
                 }
            }
         })
-    })
+    }
+    const observer = new IntersectionObserver (observerCallback, options)
 
     const hiddenElements = document.querySelectorAll('.hide');
-    hiddenElements.forEach((element) => observer.observe(element));
+    hiddenElements.forEach((element) => {
+        observer.observe(element)
+    });
 
     const projectCards = document.querySelectorAll('.center_card');
     projectCards.forEach((card) => card.addEventListener('animationend', () => {

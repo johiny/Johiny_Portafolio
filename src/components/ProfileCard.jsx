@@ -15,7 +15,7 @@ const ProfileCard = () => {
     <div className="basis-full flex text-center">
         <h2 id="myDescription" className="self-center p-2 lg:p-5">
             <Typewriter
-            delaySpeed={2500}
+            delaySpeed={1700}
             words={["","I began my journey into coding two years ago, but my fascination with computers dates back to my earliest memories. As a child, one of my top Christmas wishes was for a toy computer. Thanks to this passion, I became an early adopter of the internet and learned many skills that have brought immense joy to my life. I have completed a variety of web projects using my preferred stack, and while I do have a favorite one, I am always open to trying new things and making improvements, just as I would switch out ingredients in a sandwich to make it even tastier."]}
             typeSpeed={typeSpeed}
             cursor
