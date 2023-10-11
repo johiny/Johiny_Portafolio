@@ -9,6 +9,7 @@ function findClosestSection(targetElement) {
 const NextOneButton = () => {
   return (
     <div className="flex flex-col absolute top-10 right-[33%] animate-pulse cursor-pointer hover:opacity-70" onClick={(e) => {
+        // esto es horrible debe ahber una mejor manera de hacer esto
         const nextSection = findClosestSection(e.target.parentNode.parentNode.parentNode);
         nextSection.scrollIntoView({
             behavior: "smooth",

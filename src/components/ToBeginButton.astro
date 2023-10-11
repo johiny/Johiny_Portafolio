@@ -1,0 +1,43 @@
+<div class="lg:fixed lg:right-0 lg:bottom-24 py-10 px-10 text-center rounded-l-lg hover:bg-darkCornflowerBlue cursor-pointer right_text hidebutton z-30" id="toBeginButton">
+    To the Beginning ▲
+</div>
+
+<style>
+    div{
+    --cardShadow: 0 4px 30px rgba(47, 4, 71, 0.4)
+		background: rgba(255, 255, 255, 0);
+		box-shadow: var(--cardShadow);
+		backdrop-filter: blur(5px);
+		-webkit-backdrop-filter: blur(5px);
+		border: 2px solid rgba(255, 255, 255, 0.1);
+		animation-delay: var(--delay);
+        font-family: 'Source Code Pro', monospace;
+        font-weight: 100;
+	}
+    .hidebutton{
+        right: -400px;
+        transition: all 1s ease-in-out;
+    }
+</style>
+
+<script>
+    const sortedButton = document.querySelector("#toBeginButton")
+    if(sortedButton){
+        sortedButton.addEventListener('click', () => {
+           window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+           })
+    })
+    window.addEventListener("scroll", () => {
+        if(window.scrollY > (window.innerHeight * 3)){
+            sortedButton.classList.remove('hidebutton')
+            sortedButton.classList.add('animate__animated', 'animate__fadeInRight')
+        }
+        else{
+            sortedButton.classList.add('hidebutton')
+            sortedButton.classList.remove('animate__animated', 'animate__fadeInRight')
+        }
+    })
+}
+</script>
