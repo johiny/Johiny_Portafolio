@@ -1,18 +1,24 @@
 ---
 import ProjectCard from "./ProjectCard.astro";
 const {text_left, text_right, title, cardImg, url} = Astro.props
+import NextOneButton from "./NextOneButton"
 ---
 
 <section class="flex flex-col z-10 lg:flex-row  justify-between">
     <h3 class='p-5 hide left_text basis-1/3 text-justify'>{text_left}</h3>
     <ProjectCard img={cardImg} title={title} url={url}/>
     <h3 class='mt-auto p-5 hide right_text mr-2 basis-1/3 text-justify'>{text_right}</h3>
+    <NextOneButton client:load/>
 </section>
 
 
 <style>
      @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro&display=swap');
      h3{
+        font-family: 'Source Code Pro', monospace;
+        font-weight: 100;
+     }
+     h2{
         font-family: 'Source Code Pro', monospace;
         font-weight: 100;
      }
