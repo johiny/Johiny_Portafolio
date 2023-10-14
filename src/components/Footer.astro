@@ -1,37 +1,68 @@
 ---
 ---
 <div
-  class="lg:fixed lg:top-0 lg:right-32 mb-2 lg:mb-0 flex flex-col miniFooter justify-center items-center self-center 
-  px-12 py-2 rounded-b-lg z-40 animate__animated animate__fadeInDown animate__delay-1s"
+  class="lg:fixed absolute top-4 lg:top-28 lg:right-0  flex flex-col miniFooter justify-center items-center self-center 
+  px-4 py-2 rounded-b-lg z-40 animate__animated animate__fadeInRight animate__delay-1s"
 >
-  <div class="flex flex-row gap-4">
+  <div class="flex flex-row lg:flex-col gap-4">
+    <!-- <div class='h-10 self-center dark:border-aeroBlue border-lightBlack rounded-lg line1'/> -->
     <a href="https://github.com/johiny" title="Github Link"
       ><i
-        class="fa-brands fa-github text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer"
+        class="fa-brands fa-github text-xl lg:text-2xl  hover:cursor-pointer"
       ></i>
     </a>
     <a href="https://www.linkedin.com/in/johan-sebastian-c-mazo/" title="Linkedin Link"
       ><i
-        class="fa-brands fa-linkedin text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer"
+        class="fa-brands fa-linkedin text-xl lg:text-2xl  hover:cursor-pointer"
       ></i>
     </a>
     <a href="https://twitter.com/johinyDev" title="Twitter Link"
       ><i
-        class="fa-brands fa-twitter text-xl lg:text-2xl dark:hover:text-xiketic hover:text-[#334257] hover:cursor-pointer"
+        class="fa-brands fa-twitter text-xl lg:text-2xl  hover:cursor-pointer"
       ></i>
+      <a href="mailto:contact@johiny.dev" title="Email"
+      ><i
+        class="fa fa-envelope text-xl lg:text-2xl   hover:cursor-pointer"
+    ></i>  
     </a>
+    <div class='h-14 self-center rounded-lg hidden lg:inline-block line2'/>
   </div>
-  <h6>contact@johiny.dev</h6>
 </div>
 <style>
+  :root[data-theme="light"] .miniFooter {
+    --iconscolor: #121212;
+    --bordergradient: linear-gradient(to bottom, rgba(18, 18, 18, 1)
+, rgba(18, 18, 18, 0.1));
+  }
+  :root[data-theme="dark"] .miniFooter {
+    --iconscolor: #C2E7D9;
+    --bordergradient: linear-gradient(to bottom, rgba(194, 231, 217, 1)
+, rgba(194, 231, 217, 0.1));
+  }
+  .line2{
+        border-left: solid;
+        border-width: 0.1vh;
+        border-image: var(--bordergradient);
+    border-image-slice: 1;
+  }
+  .line1{
+        border-left: solid;
+        border-width: 0.1vh;
+        border-image: linear-gradient(to top, rgba(194, 231, 217, 1)
+, rgba(194, 231, 217, 0.1));
+    border-image-slice: 1;
+  }
   .miniFooter {
     font-family: 'Source Code Pro', monospace;
     font-weight: 100;
-    --footerColor: #222831;
-    background-color: var(--footerColor);
   }
-  :root[data-theme="light"] .miniFooter {
-    --footerColor: #ffffff;
+
+  i{
+    color: var(--iconscolor);
+    transition: all ease-in-out 200ms;
+  }
+  i:hover{
+    transform: scale(1.2);
   }
   
   

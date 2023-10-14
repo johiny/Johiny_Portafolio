@@ -10,7 +10,7 @@ const ProfileCard = () => {
     const [profileImg, setprofileImg] = useState(johiny_game_char_speaking)
     const [typeSpeed, setTypeSpeed] = useState(60)
     return(
-<div className='absolute border-blackText border-2 dark:text-cuteWhite text-blackText top-64 lg:top-[60vh] md:top-32 z-10 lg:h-80 mx-2 flex flex-col w-[96%] lg:w-[99%] items-center lg:flex-row animate__animated animate__bounceInLeft profileCard' id="profileCard">
+<div className='relative border-blackText border-2 dark:text-cuteWhite text-blackText top-64 lg:top-[60vh] md:top-32 z-10 lg:h-80 mx-2 flex flex-col w-[96%] lg:w-[99%] items-center lg:flex-row animate__animated animate__bounceInLeft profileCard' id="profileCard">
         <img src={profileImg} className="mb-auto p-1 lg:p-5 lg:mt-auto rounded-full w-36 lg:w-72" alt="animate gif of johiny"/>  
     <div className="basis-full flex text-center">
         <h2 id="myDescription" className="self-center p-2 lg:p-5">
@@ -24,7 +24,7 @@ const ProfileCard = () => {
             />
         </h2>
     </div>
-        <div className="absolute chat_controls right-10 bottom-10 flex gap-2">
+        <div className="absolute chat_controls top-5 right-5 flex gap-2">
         <ChatControl text="" icon={faBackward} action={() => setTypeSpeed((value) => value <= 140 ? value + 20 : value)} id="backward_button"/>
         <ChatControl text="" icon={faForward} reverse={true} id="forward_button" action={() => setTypeSpeed((value) => value >= 0 ? value - 20: value)}/>
         <ChatControl text="" icon={faForwardFast} reverse={true} id="skip_button" action={() => setTypeSpeed(1)}/>

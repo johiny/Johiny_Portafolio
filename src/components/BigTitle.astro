@@ -1,23 +1,25 @@
 ---
-const {delay, opacity} = Astro.props;
-const customClass = `${Astro.props.class} m-0 animate__animated animate__fadeInLeft z-10 select-none`
+const {delay, opacity, text} = Astro.props;
+import Textfit  from '@namhong2001/react-textfit'
 ---
 
 
-<h1 class={customClass}><slot></slot></h1>
+<div class=`${Astro.props.class || ""} m-0 animate__animated animate__fadeInLeft z-10 select-none h-1/3 relative`>
+    <Textfit className="w-full h-full p-0 lg:leading-[0.5] leading-[1]" mode="multi" max={500} client:only>
+        {text}
+    </Textfit>
+</div>
 
 <style define:vars={{delay, opacity}}>
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
-    h1{
-        --textStroke:2px rgba(194, 231, 217, var(--opacity));
+    div{
+        --textStroke:4.5px rgba(194, 231, 217, var(--opacity));
         font-family: 'Anton', sans-serif;
-		font-size: 30vh;
 		color: transparent;
         animation-delay: var(--delay);
         -webkit-text-stroke: var(--textStroke);
-        line-height: 110%;
     }
-    :root[data-theme="light"] h1{
+    :root[data-theme="light"] div{
     --textStroke: 3px rgba(13, 2, 33, var(--opacity));
   } 
 </style>

@@ -1,21 +1,19 @@
 ---
-import BigTitle from '../components/BigTitle.astro';
 import ProfileCard from './ProfileCard.jsx';
 import { ThemeSwitch } from "astro-color-scheme";
 import TranslateButton from './TranslateButton.astro';
+import TextBackgroundEffect from './TextBackgroundEffect.astro';
 ---
 
-<div class="relative lg:mb-5 lg:mt-5" id="headerContainer">
+<div class="relative min-h-screen h-[150vh] lg:h-screen lg:mt-5 mt-10 " id="headerContainer">
     <ThemeSwitch strategy='button' defaultTheme="dark">
-        <div class="absolute right-0 z-30 themeSwitcher p-4 themeSwitcher">
+        <div class="absolute right-[2px] z-30 themeSwitcher p-4 themeSwitcher">
             <button class="bg-lightBlue h-8 w-8 absolute bg-opacity-0"  title="icon theme change"/>
             <i class="themeSwitcherIcon z-20 fa-solid fa-circle-half-stroke  text-xl text-lightBlack dark:text-aeroBlue"></i>
         </div>
     </ThemeSwitch>
+    <TextBackgroundEffect/>
     <TranslateButton/>
-    <BigTitle class="text-9xl lg:text-[30vh] md:text-[12vh]" delay={0} opacity={1} >Hi I'm Johiny</BigTitle>
-    <BigTitle class="text-9xl relative left-6 lg:text-[30vh] md:text-[12vh] md:left-[5vh] lg:left-52" delay={'200ms'} opacity={0.5}>Hi I'm Johiny</BigTitle>
-    <BigTitle class='text-9xl relative left-12 lg:text-[30vh] md:text-[12vh] md:left-[8vh] lg:left-80' delay={'400ms'} opacity={0.2}>Hi I'm Johiny</BigTitle>
     <ProfileCard client:only/> 
 </div>
 
