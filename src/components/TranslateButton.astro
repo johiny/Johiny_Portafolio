@@ -14,11 +14,10 @@
     }
 </style>
 
-<script is:inline src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" crossorigin="anonymous"></script>
+
 <script>
     const translateButtons = document.querySelectorAll("#tranlateButton")
     if(translateButtons){
-        console.log("hola")
         translateButtons.forEach(translateButton => {
             translateButton.addEventListener('click', () => {
                 window.location.href = "https://www-johiny-dev.translate.goog/?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=en&_x_tr_pto=wapp"
