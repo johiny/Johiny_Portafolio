@@ -1,77 +1,46 @@
 ---
 ---
-<div
-  class="lg:fixed absolute top-4 lg:top-28 lg:right-0  flex flex-col miniFooter justify-center items-center self-center 
-  px-4 py-2 rounded-b-lg z-40 animate__animated animate__fadeInRight animate__delay-1s"
->
-  <div class="flex flex-row lg:flex-col gap-4">
-    <!-- <div class='h-10 self-center dark:border-aeroBlue border-lightBlack rounded-lg line1'/> -->
-    <a href="https://github.com/johiny" title="Github Link"
-      ><i
-        class="fa-brands fa-github text-xl lg:text-2xl  hover:cursor-pointer"
-      ></i>
+
+<div class={`flex flex-col items-center justify-center p-2 ${Astro.props.class || ''}`}>
+  <div class="flex space-x-3 mb-1">
+    <a href="https://github.com/johiny" title="Github Link">
+      <i class="fa-brands fa-github text-xl hover:text-aeroBlue transition-colors duration-300"></i>
     </a>
-    <a href="https://www.linkedin.com/in/johan-sebastian-c-mazo/" title="Linkedin Link"
-      ><i
-        class="fa-brands fa-linkedin text-xl lg:text-2xl  hover:cursor-pointer"
-      ></i>
+    <a href="https://www.linkedin.com/in/johan-sebastian-c-mazo/" title="Linkedin Link">
+      <i class="fa-brands fa-linkedin text-xl hover:text-aeroBlue transition-colors duration-300"></i>
     </a>
-    <a href="https://twitter.com/johinyDev" title="Twitter Link"
-      ><i
-        class="fa-brands fa-twitter text-xl lg:text-2xl  hover:cursor-pointer"
-      ></i>
-      <a href="mailto:contact@johiny.dev" title="Email"
-      ><i
-        class="fa fa-envelope text-xl lg:text-2xl   hover:cursor-pointer"
-    ></i>  
+    <a href="https://twitter.com/johinyDev" title="Twitter Link">
+      <i class="fa-brands fa-twitter text-xl hover:text-aeroBlue transition-colors duration-300"></i>
     </a>
-    <div class='h-14 self-center rounded-lg hidden lg:inline-block line2'/>
+    <a href="mailto:contact@johiny.dev" title="Email">
+      <i class="fa fa-envelope text-xl hover:text-aeroBlue transition-colors duration-300"></i>
+    </a>
   </div>
+  <p class="text-xs">© {new Date().getFullYear()} Johiny Dev</p>
 </div>
+
 <style>
-  :root[data-theme="light"] .miniFooter {
+  :root[data-theme="light"] div {
     --iconscolor: #121212;
-    --bordergradient: linear-gradient(to bottom, rgba(18, 18, 18, 1)
-, rgba(18, 18, 18, 0.1));
   }
-  :root[data-theme="dark"] .miniFooter {
+  :root[data-theme="dark"] div {
     --iconscolor: #C2E7D9;
-    --bordergradient: linear-gradient(to bottom, rgba(194, 231, 217, 1)
-, rgba(194, 231, 217, 0.1));
   }
-  .line2{
-        border-left: solid;
-        border-width: 0.1vh;
-        border-image: var(--bordergradient);
-    border-image-slice: 1;
-  }
-  .line1{
-        border-left: solid;
-        border-width: 0.1vh;
-        border-image: linear-gradient(to top, rgba(194, 231, 217, 1)
-, rgba(194, 231, 217, 0.1));
-    border-image-slice: 1;
-  }
-  .miniFooter {
+  
+  div {
     font-family: 'Source Code Pro', monospace;
-    font-weight: 100;
+    color: var(--iconscolor);
   }
 
-  i{
+  i {
     color: var(--iconscolor);
     transition: all ease-in-out 200ms;
   }
-  i:hover{
+  i:hover {
     transform: scale(1.2);
   }
-  
-  
 </style>
 
-<script
-  is:inline
-  src="https://kit.fontawesome.com/e1fe87383c.js"
-  crossorigin="anonymous"
-></script>
+<script is:inline src="https://kit.fontawesome.com/e1fe87383c.js" crossorigin="anonymous"></script>
 
 

@@ -1,0 +1,30 @@
+---
+// src/components/ProjectLayout.astro
+import WrappedProjectsContainer from './WrappedProjectsContainer.astro';
+
+interface Props {
+  projects: Array<{ 
+    id: number; 
+    title: string; 
+    description: string; 
+    url: string;
+    widthClass: string;
+    heightClass: string;
+  }>;
+}
+
+const { projects } = Astro.props;
+---
+
+<!-- Contenedor de Proyectos con Efecto Glass y Opacidad del 20% -->
+<div class="relative h-full w-full bg-gradient-to-br from-gray-100/50 to-gray-200/50 backdrop-blur-sm">
+  <WrappedProjectsContainer {projects} />
+</div>
+
+<style>
+  /* Estilo de fondo */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+</style>

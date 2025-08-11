@@ -5,16 +5,17 @@ import TranslateButton from './TranslateButton.astro';
 import TextBackgroundEffect from './TextBackgroundEffect.astro';
 ---
 
-<div class="relative min-h-screen h-[150vh] lg:h-screen lg:mt-5 mt-10 " id="headerContainer">
+<div class={`relative min-h-[60vh] flex items-center justify-center ${Astro.props.class || ''}`} id="headerContainer">
     <ThemeSwitch strategy='button' defaultTheme="dark">
-        <div class="absolute right-[2px] z-30 themeSwitcher p-4 themeSwitcher">
-            <button class="bg-lightBlue h-8 w-8 absolute bg-opacity-0"  title="icon theme change"/>
-            <i class="themeSwitcherIcon z-20 fa-solid fa-circle-half-stroke  text-xl text-lightBlack dark:text-aeroBlue"></i>
+        <div class="absolute right-2 top-2 z-30 themeSwitcher p-2 themeSwitcher">
+            <button class="bg-lightBlue h-6 w-6 absolute bg-opacity-0"  title="icon theme change"/>
+            <i class="themeSwitcherIcon z-20 fa-solid fa-circle-half-stroke text-lg text-lightBlack dark:text-aeroBlue"></i>
         </div>
     </ThemeSwitch>
     <TextBackgroundEffect/>
-    <TranslateButton/>
-    <ProfileCard client:only/> 
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-30 z-10"></div>
+    <TranslateButton class="z-20"/>
+    <ProfileCard client:only class="z-20 relative"/> 
 </div>
 
 <script>

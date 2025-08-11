@@ -1,0 +1,259 @@
+---
+// src/components/WrappedProjectsContainer.astro
+interface Props {
+  projects: Array<{ 
+    id: number; 
+    title: string; 
+    description: string; 
+    url: string;
+  }>;
+}
+
+const { projects } = Astro.props;
+
+// Definir diferentes iconos minimalistas para cada proyecto
+const projectIcons = [
+  // Icono 1: Código (My First Web)
+  '<svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>',
+  // Icono 2: Tienda (Sell In A Flash)
+  '<svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
+  // Icono 3: Gestión (Maneja Tu Proyecto)
+  '<svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>',
+  // Icono 4: Memoria/Foto (Harvard Memories)
+  '<svg class="w-12 h-12 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+  // Icono 5: Dev.to (DevTo Fun)
+  '<svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>',
+  // Icono 6: Aviación (Airman Project)
+  '<svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>',
+  // Icono 7: Gráfico/Datos (Vet Análisis Datos)
+  '<svg class="w-12 h-12 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
+  // Icono 8: Pensamiento/Idea (CS50Thoughts)
+  '<svg class="w-12 h-12 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>'
+];
+
+// Función para generar tamaños aleatorios de bentobox más grandes
+function getRandomSize() {
+  const sizes = [
+    'w-80 h-80',
+    'w-96 h-96',
+    'w-112 h-112',
+    'w-128 h-128',
+    'w-80 h-96',
+    'w-96 h-80',
+    'w-112 h-128',
+    'w-128 h-112',
+    'w-96 h-112',
+    'w-112 h-96'
+  ];
+  return sizes[Math.floor(Math.random() * sizes.length)];
+}
+---
+
+<!-- Contenedor con efecto de desvanecimiento en los bordes -->
+<div class="relative h-full w-full">
+  <!-- Overlay para efecto de desvanecimiento en los bordes -->
+  <div class="faded-overlay"></div>
+  
+  <div 
+    id="wrapped-projects-container"
+    class="flex flex-col h-full w-full overflow-x-auto overflow-y-hidden gap-6  scrollbar-hide"
+    style="scrollbar-width: none; -ms-overflow-style: none; flex-wrap: wrap; flex-direction: column; align-content: flex-start;"
+  >
+    {
+      projects.map((project, index) => {
+        const size = getRandomSize();
+        return (
+          <a 
+            href={project.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class={`glass-card rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 flex-shrink-0 ${size}`}
+          >
+            <!-- Contenido centrado con altura fija -->
+            <div class="flex flex-col items-center justify-center p-6 h-full">
+              <!-- Icono minimalista centrado con efecto hover -->
+              <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border border-white/20 mb-4 project-icon">
+                <div set:html={projectIcons[index % projectIcons.length]} />
+              </div>
+              
+              <!-- Título centrado con efecto hover -->
+              <h3 class="text-xl font-semibold mb-2 text-center text-gray-800 project-title">{project.title}</h3>
+              
+              <!-- Descripción centrada con límite de líneas -->
+              <p class="text-gray-600 text-center text-base line-clamp-3">{project.description}</p>
+            </div>
+          </a>
+        );
+      })
+    }
+  </div>
+</div>
+
+<script>
+  // Convertir scroll vertical en horizontal
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('wrapped-projects-container');
+    
+    if (container) {
+      // Convertir scroll vertical en horizontal
+      container.addEventListener('wheel', (e) => {
+        // Prevenir el scroll vertical predeterminado
+        e.preventDefault();
+        
+        // Convertir movimiento vertical en horizontal
+        container.scrollLeft += e.deltaY;
+      }, { passive: false });
+      
+      // Funcionalidad de arrastrar para desplazarse
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+      
+      container.addEventListener('mousedown', (e) => {
+        isDown = true;
+        container.classList.add('active');
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+      });
+      
+      container.addEventListener('mouseleave', () => {
+        isDown = false;
+        container.classList.remove('active');
+      });
+      
+      container.addEventListener('mouseup', () => {
+        isDown = false;
+        container.classList.remove('active');
+      });
+      
+      container.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = (x - startX) * 2; // Ajustar velocidad de scroll
+        container.scrollLeft = scrollLeft - walk;
+      });
+      
+      // Para dispositivos con touch
+      container.addEventListener('touchstart', (e) => {
+        isDown = true;
+        startX = e.touches[0].pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+      });
+      
+      container.addEventListener('touchend', () => {
+        isDown = false;
+      });
+      
+      container.addEventListener('touchmove', (e) => {
+        if (!isDown) return;
+        const x = e.touches[0].pageX - container.offsetLeft;
+        const walk = (x - startX) * 2; // Ajustar velocidad de scroll
+        container.scrollLeft = scrollLeft - walk;
+      });
+    }
+  });
+</script>
+
+<style>
+  /* Estilo de tarjeta glass con opacidad del 20% */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(0, 0, 0, 0.03);
+  }
+  
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 8px 20px rgba(0, 0, 0, 0.08),
+      0 16px 40px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Efecto hover para el icono */
+  .project-icon {
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover .project-icon {
+    transform: scale(1.1) rotate(5deg);
+    background: linear-gradient(to bottom right, rgba(239, 246, 255, 0.7), rgba(245, 243, 255, 0.7));
+  }
+  
+  /* Efecto hover para el título */
+  .project-title {
+    transition: all 0.3s ease;
+  }
+  
+  .glass-card:hover .project-title {
+    transform: translateY(-2px);
+    color: #4f46e5; /* Indigo 600 */
+  }
+  
+  /* Mejorar el efecto de vidrio del fondo */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Limitar el número de líneas en la descripción */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Ocultar scrollbar */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Estilos para macOS-inspired design */
+  .glass-card {
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Efecto de borde sutil al estilo macOS */
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
+    border-radius: 18px 18px 0 0;
+    pointer-events: none;
+  }
+  
+  /* Cursor para indicar que se puede arrastrar */
+  #wrapped-projects-container {
+    cursor: grab;
+  }
+  
+  #wrapped-projects-container:active {
+    cursor: grabbing;
+  }
+  
+  
+  /* Ajustar el contenedor para que funcione con el overlay */
+  #wrapped-projects-container {
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Media queries para tamaños responsivos */
+  @media (max-width: 768px) {
+    .glass-card {
+      min-width: 280px;
+      min-height: 280px;
+    }
+  }
+</style>

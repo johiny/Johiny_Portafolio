@@ -2,9 +2,45 @@
 import 'animate.css';
 ---
 
-<div class="flex bg-lightBlue dark:bg-xiketic  flex-col z-0 overflow-x-hidden overflow-y-hidden">
+<div class="flex flex-col z-0 overflow-hidden min-h-screen animated-bg" style="max-height: 100vh;">
     <slot></slot>
 </div>
+
 <style>
+    /* Add a custom scrollbar */
+    div::-webkit-scrollbar {
+        width: 8px;
+    }
     
+    div::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.5);
+    }
+    
+    div::-webkit-scrollbar-thumb {
+        background: #0F084B;
+        border-radius: 4px;
+    }
+    
+    div::-webkit-scrollbar-thumb:hover {
+        background: #0D0221;
+    }
+    
+    /* Minimalist animated gradient background with more visible colors */
+    .animated-bg {
+        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+        background-size: 400% 400%;
+        animation: gradient 15s ease infinite;
+    }
+    
+    @keyframes gradient {
+        0% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
+        100% {
+            background-position: 0% 50%;
+        }
+    }
 </style>

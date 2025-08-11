@@ -1,18 +1,81 @@
 @import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans&display=swap");
-.profileCard {
-  background-color: rgba(255, 255, 255, 0);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  animation-delay: 800ms;
-  backdrop-filter: blur(3px);
+
+/* Estilo de tarjeta glass con opacidad del 20% y efectos macOS */
+.glass-card {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
-.profileCard h2 {
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    0 16px 40px rgba(0, 0, 0, 0.06);
+  transform: translateY(-5px);
+}
+
+/* Efecto de brillo característico de macOS */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  transform: rotate(30deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.glass-card:hover::before {
+  opacity: 1;
+  transform: rotate(30deg) translate(20%, 20%);
+}
+
+.glass-card h2 {
   font-family: "Pixelify Sans", cursive;
   font-weight: 100;
-  line-height: 5vh;
+  line-height: 1.6;
   font-size: x-large;
+  color: rgba(255, 255, 255, 0.9);
 }
-.profileCard img {
+
+.glass-card img {
   transform: scaleX(-1);
+  border-radius: 50%;
+  border: 3px solid rgba(194, 231, 217, 0.5);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover img {
+  border-color: rgba(194, 231, 217, 0.8);
+  transform: scaleX(-1) scale(1.05);
+}
+
+/* Estilos para los controles de chat */
+.chat-control {
+  transition: all 0.2s ease;
+}
+
+.chat-control:hover {
+  transform: translateY(-2px);
+}
+
+.chat-control:active {
+  transform: translateY(1px);
 }

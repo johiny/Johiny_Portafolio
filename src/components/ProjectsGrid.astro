@@ -1,0 +1,80 @@
+---
+import ProjectCard from './ProjectCard.astro';
+import firstWeb from '../media/first_web.jpg'
+import sf from '../media/sf.jpg'
+import manejaTuProyecto  from '../media/maneja_tu_proyecto_logo.jpg'
+import harvard_memories from '../media/harvard-memories.jpg'
+import devfunhome from '../media/devfun.jpg'
+import airman from '../media/airman_logo.jpg'
+import vetdata from "../media/vetdata.jpg"
+import cs50thoughts from "../media/cs50thoughts.jpg"
+---
+
+<div class={Astro.props.class || "projects-grid"}>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-fr justify-center">
+        <ProjectCard 
+            title='My First Web' 
+            img={firstWeb} 
+            url={'https://maquicosas.es.tl/Home.htm'}
+            description="My first website from 2010. A nostalgic look at my early web development days."
+            class="sm:col-span-2 sm:row-span-2"
+        />
+        <ProjectCard 
+            title='Sell In A Flash' 
+            img={sf} 
+            url={'https://sell-in-a-flash-17dp.onrender.com/'} 
+            description="A group project e-commerce site. My first serious web development experience."
+        />
+        <ProjectCard 
+            title='Maneja Tu Proyecto' 
+            img={manejaTuProyecto} 
+            url={'https://gestiona-tu-proyecto-frontend.onrender.com/'}
+            description="A project management app with dynamic roles. Learned teamwork and perseverance."
+        />
+        <ProjectCard 
+            title='Harvard Memories' 
+            img={harvard_memories} 
+            url={'https://harvard-memories.vercel.app/'}
+            description="A personal scrapbook from my CS50 course. Showcases pure JavaScript experiments."
+            class="sm:col-span-2"
+        />
+        <ProjectCard 
+            title='DevTo Fun' 
+            img={devfunhome} 
+            url={'https://devto-fun-home.vercel.app/'}
+            description="A React-based UI for exploring Dev.to posts with dark/light themes."
+        />
+        <ProjectCard 
+            title='Airman Project' 
+            img={airman} 
+            url={'https://airmanproject.vercel.app/'}
+            description="An e-commerce site using BestBuy's API. A fun collaboration with friends."
+            class="sm:row-span-2"
+        />
+        <ProjectCard 
+            title='Vet Análisis Datos' 
+            img={vetdata} 
+            url={'https://vetanalisisdatos.com/'}
+            description="My first paid work: a Spanish data analysis course for veterinarians."
+        />
+        <ProjectCard 
+            title='CS50Thoughts' 
+            img={cs50thoughts} 
+            url={'https://cs50thoughts.vercel.app/'}
+            description="A platform for sharing thoughts about CS50 with likes, dislikes, and filtering."
+            class="sm:col-span-2"
+        />
+    </div>
+</div>
+
+<style>
+    .projects-grid {
+        padding: 1rem;
+        margin: 0 auto;
+        max-width: 1200px;
+    }
+    
+    .auto-rows-fr {
+        grid-auto-rows: 1fr;
+    }
+</style>
