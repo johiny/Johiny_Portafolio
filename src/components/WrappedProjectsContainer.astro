@@ -88,10 +88,17 @@ function bentoSize(index: number) {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              class={`project-item glass-card ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`}
+              class={`project-item glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`}
               data-index={originalIndex}
               data-duplicate={index >= projects.length ? 'true' : 'false'}
             >
+              <!-- Window Controls (macOS style) -->
+              <div class="window-controls absolute top-3 left-3 flex space-x-2 z-10 transition-all duration-300">
+                <div class="window-control-btn window-control-close"></div>
+                <div class="window-control-btn window-control-minimize"></div>
+                <div class="window-control-btn window-control-maximize"></div>
+              </div>
+              
               <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full">
                 <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
                   <div set:html={projectIcons[originalIndex % projectIcons.length]} />
@@ -191,6 +198,84 @@ function bentoSize(index: number) {
     document.addEventListener('mousemove', drag);
     document.addEventListener('touchmove', drag, { passive: true });
 
+    // Window Controls functionality
+    function handleWindowControl(e, action, projectItem) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      // Remover clases de animación y estado previas
+      projectItem.classList.remove('closing', 'minimizing', 'maximizing', 'restoring');
+      projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
+      
+      switch(action) {
+        case 'close':
+          projectItem.classList.add('closing');
+          setTimeout(() => {
+            projectItem.classList.remove('closing');
+            projectItem.classList.add('closed-state');
+          }, 600);
+          break;
+          
+        case 'minimize':
+          projectItem.classList.add('minimizing');
+          setTimeout(() => {
+            projectItem.classList.remove('minimizing');
+            projectItem.classList.add('minimized-state');
+          }, 600);
+          break;
+          
+        case 'maximize':
+          projectItem.classList.add('maximizing');
+          setTimeout(() => {
+            projectItem.classList.remove('maximizing');
+            projectItem.classList.add('maximized-state');
+          }, 400);
+          break;
+      }
+    }
+
+    // Función para restaurar tarjeta desde el borde - USA TRANSICIÓN CSS
+    function restoreCard(projectItem) {
+      // Remover estados y permitir que la transición CSS haga el trabajo
+      projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
+      // Limpiar estilos inline aplicados por JavaScript
+      projectItem.style.position = '';
+      projectItem.style.top = '';
+      projectItem.style.left = '';
+      projectItem.style.transform = '';
+      projectItem.style.zIndex = '';
+      // La transición CSS automáticamente animará de vuelta al estado original
+    }
+
+    // Agregar event listeners a todos los window controls
+    document.querySelectorAll('.window-control-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const projectItem = btn.closest('.project-item');
+        
+        if (btn.classList.contains('window-control-close')) {
+          handleWindowControl(e, 'close', projectItem);
+        } else if (btn.classList.contains('window-control-minimize')) {
+          handleWindowControl(e, 'minimize', projectItem);
+        } else if (btn.classList.contains('window-control-maximize')) {
+          handleWindowControl(e, 'maximize', projectItem);
+        }
+      });
+    });
+
+    // Event listener para restaurar tarjetas clickeando en ellas cuando están en los bordes
+    document.addEventListener('click', (e) => {
+      const projectItem = e.target.closest('.project-item');
+      if (projectItem && (
+        projectItem.classList.contains('closed-state') ||
+        projectItem.classList.contains('minimized-state') ||
+        projectItem.classList.contains('maximized-state')
+      )) {
+        e.preventDefault();
+        e.stopPropagation();
+        restoreCard(projectItem);
+      }
+    });
+
     // Cleanup
     window.addEventListener('beforeunload', () => {
       if (animationId) {
@@ -250,7 +335,7 @@ function bentoSize(index: number) {
     flex: 0 0 auto;
     display: flex;
     align-items: stretch;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Transición suave para todos los cambios */
     user-select: none; /* Evita selección de texto */
     -webkit-user-select: none; /* Safari */
     -moz-user-select: none; /* Firefox */
@@ -301,27 +386,30 @@ function bentoSize(index: number) {
     }
   }
 
-  /* Estilo de tarjeta glass mejorado */
+  /* Estilo de tarjeta glass mejorado - Mayor contraste y legibilidad */
   .glass-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.35); /* Más opaco para mejor contraste */
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde más visible */
     font-family: "Pixelify Sans", cursive;
     box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 4px 16px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      0 12px 40px rgba(0, 0, 0, 0.15), /* Sombras más pronunciadas */
+      0 6px 20px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5), /* Highlight más fuerte */
+      inset 0 -1px 0 rgba(0, 0, 0, 0.1); /* Borde inferior sutil */
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .glass-card:hover {
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.45); /* Aún más opaco en hover */
     transform: translateY(-8px) scale(1.02);
     box-shadow: 
-      0 16px 64px rgba(0, 0, 0, 0.15),
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      0 20px 60px rgba(0, 0, 0, 0.2), /* Sombras más dramáticas */
+      0 10px 30px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.6); /* Borde más brillante en hover */
   }
   
   /* Efecto hover para el icono */
@@ -391,17 +479,17 @@ function bentoSize(index: number) {
     transition: all 0.3s ease;
   }
   
-  /* Animación sutil de entrada para las tarjetas */
+  /* Animación sutil de entrada para las tarjetas - DESHABILITADA */
   .project-item {
-    animation: slideInFromRight 0.6s ease-out;
-    animation-fill-mode: both;
+    /* animation: slideInFromRight 0.6s ease-out; */
+    /* animation-fill-mode: both; */
   }
   
-  .project-item:nth-child(1) { animation-delay: 0.1s; }
+  /* .project-item:nth-child(1) { animation-delay: 0.1s; }
   .project-item:nth-child(2) { animation-delay: 0.2s; }
   .project-item:nth-child(3) { animation-delay: 0.3s; }
   .project-item:nth-child(4) { animation-delay: 0.4s; }
-  .project-item:nth-child(5) { animation-delay: 0.5s; }
+  .project-item:nth-child(5) { animation-delay: 0.5s; } */
   
   @keyframes slideInFromRight {
     from {
@@ -481,17 +569,20 @@ function bentoSize(index: number) {
     filter: drop-shadow(0 4px 8px rgba(194, 233, 251, 0.4));
   }
 
-  /* Estilos de gradientes macOS para títulos - Mejorada legibilidad */
+  /* Estilos de gradientes macOS para títulos - Legibilidad mejorada */
   .gradient-text-title-1 {
     background: linear-gradient(45deg, #ff9a9e, #ff6b6b);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 700; /* Más bold para mejor contraste */
-    font-size: 1.125rem; /* Ligeramente más grande */
-    text-shadow: 0 1px 2px rgba(255, 154, 158, 0.3); /* Sombra sutil */
-    letter-spacing: 0.025em; /* Mejor espaciado */
+    font-weight: 800; /* Más bold para mejor contraste */
+    font-size: 1.25rem; /* Más grande para mejor legibilidad */
+    text-shadow: 
+      0 2px 4px rgba(255, 154, 158, 0.5),
+      0 4px 8px rgba(255, 107, 107, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra negra sutil para contraste */
+    letter-spacing: 0.03em;
     transition: all 0.3s ease;
   }
   
@@ -501,10 +592,13 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 700;
-    font-size: 1.125rem;
-    text-shadow: 0 1px 2px rgba(250, 208, 196, 0.3);
-    letter-spacing: 0.025em;
+    font-weight: 800;
+    font-size: 1.25rem;
+    text-shadow: 
+      0 2px 4px rgba(250, 208, 196, 0.5),
+      0 4px 8px rgba(255, 192, 72, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.03em;
     transition: all 0.3s ease;
   }
   
@@ -514,10 +608,13 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 700;
-    font-size: 1.125rem;
-    text-shadow: 0 1px 2px rgba(161, 196, 253, 0.3);
-    letter-spacing: 0.025em;
+    font-weight: 800;
+    font-size: 1.25rem;
+    text-shadow: 
+      0 2px 4px rgba(161, 196, 253, 0.5),
+      0 4px 8px rgba(102, 126, 234, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.03em;
     transition: all 0.3s ease;
   }
   
@@ -527,25 +624,30 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 700;
-    font-size: 1.125rem;
-    text-shadow: 0 1px 2px rgba(194, 233, 251, 0.3);
-    letter-spacing: 0.025em;
+    font-weight: 800;
+    font-size: 1.25rem;
+    text-shadow: 
+      0 2px 4px rgba(194, 233, 251, 0.5),
+      0 4px 8px rgba(118, 75, 162, 0.3),
+      0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.03em;
     transition: all 0.3s ease;
   }
 
-  /* Estilos de gradientes macOS para descripciones - Mejorada legibilidad */
+  /* Estilos de gradientes macOS para descripciones - Legibilidad mejorada */
   .gradient-text-desc-1 {
-    background: linear-gradient(45deg, #ff9a9e, #ff7a85); /* Gradiente más fuerte */
+    background: linear-gradient(45deg, #ff9a9e, #ff7a85);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 500; /* Más peso para mejor visibilidad */
-    font-size: 0.875rem; /* Ligeramente más grande */
-    line-height: 1.5; /* Mejor interlineado */
-    letter-spacing: 0.02em; /* Espaciado mejorado */
-    text-shadow: 0 1px 1px rgba(255, 154, 158, 0.2);
+    font-weight: 600; /* Más peso para mejor visibilidad */
+    font-size: 0.95rem; /* Ligeramente más grande */
+    line-height: 1.6; /* Mejor interlineado */
+    letter-spacing: 0.025em; /* Espaciado mejorado */
+    text-shadow: 
+      0 2px 4px rgba(255, 154, 158, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.08); /* Sombra negra sutil */
     transition: all 0.3s ease;
   }
   
@@ -555,11 +657,13 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 1px rgba(250, 208, 196, 0.2);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    letter-spacing: 0.025em;
+    text-shadow: 
+      0 2px 4px rgba(250, 208, 196, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
   }
   
@@ -569,11 +673,13 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 1px rgba(161, 196, 253, 0.2);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    letter-spacing: 0.025em;
+    text-shadow: 
+      0 2px 4px rgba(161, 196, 253, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
   }
   
@@ -583,11 +689,13 @@ function bentoSize(index: number) {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: "Pixelify Sans", cursive;
-    font-weight: 500;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    letter-spacing: 0.02em;
-    text-shadow: 0 1px 1px rgba(194, 233, 251, 0.2);
+    font-weight: 600;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    letter-spacing: 0.025em;
+    text-shadow: 
+      0 2px 4px rgba(194, 233, 251, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
   }
 
@@ -605,5 +713,171 @@ function bentoSize(index: number) {
   .glass-card:hover .gradient-text-desc-3,
   .glass-card:hover .gradient-text-desc-4 {
     scale: 1.05;
+  }
+
+  /* macOS Window Controls */
+  .window-controls {
+    pointer-events: auto; /* Permitir interacciones */
+  }
+  
+  .window-control-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+    position: relative;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer; /* Hacer clickeable */
+  }
+  
+  /* Colores característicos de macOS */
+  .window-control-close {
+    background: #ff5f57;
+    background: linear-gradient(135deg, #ff6058 0%, #ff4d4d 100%);
+  }
+  
+  .window-control-minimize {
+    background: #ffbd2e;
+    background: linear-gradient(135deg, #ffca2c 0%, #ffb000 100%);
+  }
+  
+  .window-control-maximize {
+    background: #28ca42;
+    background: linear-gradient(135deg, #32d74b 0%, #28a745 100%);
+  }
+  
+  .window-control-btn:hover {
+    transform: scale(1.1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Iconos dentro de los botones (aparecen solo en hover) */
+  .window-control-close:hover::after {
+    content: '✕';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #8B1538;
+    font-size: 8px;
+    font-weight: bold;
+  }
+  
+  .window-control-minimize:hover::after {
+    content: '−';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #B45309;
+    font-size: 10px;
+    font-weight: bold;
+  }
+  
+  .window-control-maximize:hover::after {
+    content: '+';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #15803D;
+    font-size: 10px;
+    font-weight: bold;
+  }
+  
+  .window-controls {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 2px 4px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+  }
+
+  /* Animaciones estilo macOS para window controls */
+  .project-item.closing {
+    animation: macosClose 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    z-index: 1000;
+  }
+  
+  .project-item.minimizing {
+    animation: macosMinimize 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    z-index: 1000;
+  }
+  
+  .project-item.maximizing {
+    animation: macosMaximize 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+  
+  /* Animación de cerrar - mover hacia posición absoluta usando custom properties */
+  @keyframes macosClose {
+    0% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+      
+    }
+    100% {
+      transform: scale(0.8) translateY(-1000px);
+    }
+  }
+  
+  /* Animación de minimizar - se vuelve muy pequeña */
+  @keyframes macosMinimize {
+    0% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.15) translateY(0);
+      opacity: 0.7;
+    }
+  }
+  
+  /* Animación de maximizar - se vuelve más grande */
+  @keyframes macosMaximize {
+    0% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.8) translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Animación de restaurar tarjeta - Simplificada para usar transición CSS */
+  .project-item.restoring {
+    /* La transición CSS base se encarga de la animación */
+  }
+  
+  /* Keyframe mantenido solo como referencia pero no se usa */
+  @keyframes macosRestore {
+    0% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1) translate(0, 0);
+      opacity: 1;
+    }
+  }
+  
+  /* Estados finales para mantener posición */
+  .project-item.closed-state {
+    cursor: pointer;
+    top: -1000px; /* Mover fuera de la vista */
+  }
+  
+  .project-item.minimized-state {
+    transform: scale(0.15) translateY(0) !important;
+    opacity: 0.7 !important;
+    z-index: 1000;
+    cursor: pointer;
+  }
+  
+  .project-item.maximized-state {
+    transform: scale(1.8) translateY(0) !important;
+    opacity: 1 !important;
+    z-index: 1000;
+    cursor: pointer;
   }
 </style>

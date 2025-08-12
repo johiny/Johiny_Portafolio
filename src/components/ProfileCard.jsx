@@ -27,7 +27,7 @@ const ProfileCard = () => {
                             cursorColor="#ff9a9e"
                         />
                     </h2>
-                    <div className="flex justify-center mt-3 space-x-2">
+                    <div className="flex justify-center mt-14 space-x-2">
                         <ChatControl text="" icon={faBackward} action={() => setTypeSpeed((value) => value <= 140 ? value + 20 : value)} id="backward_button" size="sm"/>
                         <ChatControl text="" icon={faForward} reverse={true} id="forward_button" action={() => setTypeSpeed((value) => value >= 0 ? value - 20: value)} size="sm"/>
                         <ChatControl text="" icon={faForwardFast} reverse={true} id="skip_button" action={() => setTypeSpeed(1)} size="sm"/>

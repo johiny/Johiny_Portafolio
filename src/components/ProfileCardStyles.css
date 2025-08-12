@@ -2,7 +2,7 @@
 
 /* Estilo de tarjeta glass con opacidad del 20% y efectos macOS */
 .glass-card {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 24px;
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.05),
@@ -80,13 +80,13 @@
 /* Borde gradiente para la foto de perfil */
 .border-gradient-1 {
   position: relative;
-  border-radius: 10%;
+  border-radius: 50%;
   padding: 4px;
   background: linear-gradient(135deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
 }
 
 .border-gradient-1 img {
-  border-radius: 10%;
+  border-radius: 50%;
   width: 100%;
   height: 100%;
   object-fit: cover;
