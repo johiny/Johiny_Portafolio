@@ -2,9 +2,18 @@
 import 'animate.css';
 ---
 
-<div class="flex flex-col z-0 overflow-hidden min-h-screen animated-bg" style="max-height: 100vh;">
-    <slot></slot>
+<div id="web-container" class="flex flex-col z-0 overflow-hidden animated-bg" style="min-height: calc(var(--vh, 1vh) * 100);">
+        <slot></slot>
 </div>
+
+<script is:inline>
+    const setVh = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+</script>
 
 <style>
     /* Add a custom scrollbar */
