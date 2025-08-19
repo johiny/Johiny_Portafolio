@@ -121,11 +121,65 @@ function bentoSize(index: number) {
   </div>
 </div>
 
+<!-- Botón visual macOS (solo UI) en la esquina inferior derecha -->
+<div id="macos-restore-button" class="macos-restore-button" role="button" tabindex="0" aria-label="Restaurar ventanas cerradas" hidden>
+  <div class="macos-restore-button-inner">
+    <span class="macos-restore-label">Restore</span>
+  </div>
+</div>
+
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('wrapped-projects-container');
     const track = container?.querySelector('.projects-track');
+    const actionButton = document.getElementById('macos-restore-button');
     if (!container || !track) return;
+
+    // Array que rastrea los elementos que han recibido la clase 'closed-state'
+    const closedProjects = [];
+
+    function updateRestoreButton() {
+      if (!actionButton) return;
+      if (closedProjects.length > 0) {
+        actionButton.removeAttribute('hidden');
+        actionButton.classList.add('show');
+        actionButton.setAttribute('aria-label', `Restaurar ${closedProjects.length} ventanas`);
+        actionButton.style.pointerEvents = 'auto';
+      } else {
+        actionButton.classList.remove('show');
+        actionButton.setAttribute('aria-label', 'Restaurar ventanas cerradas');
+        actionButton.style.pointerEvents = 'none';
+        actionButton.setAttribute('hidden', '');
+      }
+    }
+
+    function addClosedProject(projectItem) {
+      if (!projectItem) return;
+      if (!closedProjects.includes(projectItem)) {
+        closedProjects.push(projectItem);
+      }
+      // Log current closed projects for debugging (count + data-indexes)
+      try {
+        const indexes = closedProjects.map(p => p.getAttribute && p.getAttribute('data-index'));
+        console.log('closedProjects ADDED -> count:', closedProjects.length, 'indexes:', indexes);
+      } catch (err) {
+        console.log('closedProjects ADDED -> count:', closedProjects.length);
+      }
+      updateRestoreButton();
+    }
+
+    function removeClosedProject(projectItem) {
+      const idx = closedProjects.indexOf(projectItem);
+      if (idx !== -1) closedProjects.splice(idx, 1);
+      // Log current closed projects for debugging (count + data-indexes)
+      try {
+        const indexes = closedProjects.map(p => p.getAttribute && p.getAttribute('data-index'));
+        console.log('closedProjects REMOVED -> count:', closedProjects.length, 'indexes:', indexes);
+      } catch (err) {
+        console.log('closedProjects REMOVED -> count:', closedProjects.length);
+      }
+      updateRestoreButton();
+    }
 
     let isPaused = false;
     let animationId = null;
@@ -137,7 +191,7 @@ function bentoSize(index: number) {
     function autoScroll() {
       if (!isPaused && !isDragging) {
         container.scrollLeft += 1;
-        
+
         // Reset cuando llegue al final (simple wrap)
         if (container.scrollLeft >= container.scrollWidth / 2) {
           container.scrollLeft = 0;
@@ -202,20 +256,22 @@ function bentoSize(index: number) {
     function handleWindowControl(e, action, projectItem) {
       e.preventDefault();
       e.stopPropagation();
-      
+
       // Remover clases de animación y estado previas
       projectItem.classList.remove('closing', 'minimizing', 'maximizing', 'restoring');
       projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
-      
+
       switch(action) {
         case 'close':
           projectItem.classList.add('closing');
           setTimeout(() => {
             projectItem.classList.remove('closing');
             projectItem.classList.add('closed-state');
+            // Añadir a la lista de cerrados cuando la clase ya está aplicada
+            addClosedProject(projectItem);
           }, 600);
           break;
-          
+
         case 'minimize':
           projectItem.classList.add('minimizing');
           setTimeout(() => {
@@ -223,7 +279,7 @@ function bentoSize(index: number) {
             projectItem.classList.add('minimized-state');
           }, 600);
           break;
-          
+
         case 'maximize':
           projectItem.classList.add('maximizing');
           setTimeout(() => {
@@ -244,6 +300,9 @@ function bentoSize(index: number) {
       projectItem.style.left = '';
       projectItem.style.transform = '';
       projectItem.style.zIndex = '';
+
+      // Quitar de la lista de cerrados si estaba ahí
+      removeClosedProject(projectItem);
       // La transición CSS automáticamente animará de vuelta al estado original
     }
 
@@ -251,7 +310,7 @@ function bentoSize(index: number) {
     document.querySelectorAll('.window-control-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const projectItem = btn.closest('.project-item');
-        
+
         if (btn.classList.contains('window-control-close')) {
           handleWindowControl(e, 'close', projectItem);
         } else if (btn.classList.contains('window-control-minimize')) {
@@ -275,6 +334,53 @@ function bentoSize(index: number) {
         restoreCard(projectItem);
       }
     });
+
+    // Mostrar un feedback simple al pulsar el botón de restaurar (no restaura todo por ahora)
+    if (actionButton) {
+      actionButton.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        if (closedProjects.length === 0) return;
+
+        // Disable button while restoring
+        actionButton.style.pointerEvents = 'none';
+        actionButton.classList.remove('show');
+
+        // Small pop animation
+        actionButton.animate([
+          { transform: 'translateY(0)' },
+          { transform: 'translateY(-8px)' },
+          { transform: 'translateY(0)' }
+        ], { duration: 260 });
+
+        console.log('Restore ALL clicked, restoring', closedProjects.length, 'items');
+
+        // Work on a shallow copy because restoreCard will modify the array
+        const toRestore = closedProjects.slice();
+
+        for (let i = 0; i < toRestore.length; i++) {
+          const item = toRestore[i];
+          try {
+            // Add a tiny stagger for visibility
+            restoreCard(item);
+            console.log('Restored item index:', item.getAttribute && item.getAttribute('data-index'));
+            // Wait a bit so user sees the individual restores (skip if prefers-reduced-motion)
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+              await new Promise(r => setTimeout(r, 120));
+            }
+          } catch (err) {
+            console.error('Error restoring item', err);
+          }
+        }
+
+        // Ensure array cleared and UI updated
+        closedProjects.length = 0;
+        updateRestoreButton();
+        console.log('All restored, closedProjects count now:', closedProjects.length);
+
+        // Re-enable pointer events (updateRestoreButton may hide the button)
+        actionButton.style.pointerEvents = '';
+      });
+    }
 
     // Cleanup
     window.addEventListener('beforeunload', () => {
@@ -864,7 +970,16 @@ function bentoSize(index: number) {
   /* Estados finales para mantener posición */
   .project-item.closed-state {
     cursor: pointer;
-    top: -1000px; /* Mover fuera de la vista */
+    /* Usar transform + opacity (animables) para permitir una transición suave al restaurar */
+    transform: translateY(-1000px) scale(0.8);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Sugerencia de rendimiento: indicar propiedades que cambiarán */
+  .project-item,
+  .project-item .project-item-inner {
+    will-change: transform, opacity;
   }
   
   .project-item.minimized-state {
@@ -879,5 +994,73 @@ function bentoSize(index: number) {
     opacity: 1 !important;
     z-index: 1000;
     cursor: pointer;
+  }
+
+  /* Estilos para el botón macOS en la esquina inferior derecha */
+  .macos-restore-button {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1200;
+    width: auto;
+    height: 56px;
+    border-radius: 9999px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.42), rgba(245, 245, 249, 0.763));
+    box-shadow: 0 12px 36px rgba(11, 11, 13, 0.18), inset 0 1px 0 rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.35);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.16s ease;
+    opacity: 0.98;
+    pointer-events: auto;
+  }
+
+  .macos-restore-button-inner {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .macos-restore-icon {
+    width: 18px;
+    height: 18px;
+    stroke: url(#fake) !important; /* fallback; we'll tint via CSS */
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
+  }
+
+  .macos-restore-label {
+    font-family: "Pixelify Sans", cursive;
+    font-weight: 700;
+    font-size: 0.9rem;
+    line-height: 1;
+    display: inline-block;
+    background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transform: translateY(0);
+  }
+
+  /* Ajustes de hover para enfatizar el efecto glass + gradiente */
+  .macos-restore-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 44px rgba(11,11,13,0.22), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .macos-restore-button.show {
+    display: inline-flex !important;
+    animation: popIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.86) translateY(8px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
   }
 </style>
