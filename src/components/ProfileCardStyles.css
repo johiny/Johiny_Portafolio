@@ -114,3 +114,15 @@
   color: #c2e9fb;
   transform: translateY(1px) scale(0.95);
 }
+
+/* Entrada desde la izquierda para el ProfileCard */
+.profile-card {
+  transform: translateX(-24px) scale(0.98);
+  opacity: 0;
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease;
+}
+
+.profile-card.entered {
+  transform: translateX(0) scale(1);
+  opacity: 1;
+}

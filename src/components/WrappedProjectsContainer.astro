@@ -88,7 +88,7 @@ function bentoSize(index: number) {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              class={`project-item glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`}
+              class={`project-item preload glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`}
               data-index={originalIndex}
               data-duplicate={index >= projects.length ? 'true' : 'false'}
             >
@@ -205,6 +205,44 @@ function bentoSize(index: number) {
       console.log('Iniciando scroll automático...');
       autoScroll();
     }, 100);
+
+    // Animación de entrada para las project cards: las tarjetas se renderizan
+    // inicialmente con la clase `preload` (render server-side) para que el
+    // primer paint las muestre fuera de su posición final. Aquí añadimos
+    // `.loaded` en un stagger usando rAF para animarlas suavemente hacia su
+    // posición original sin parpadeos.
+    function animateCardsIn() {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const cards = Array.from(track.querySelectorAll('.project-item'));
+
+      if (prefersReduced) {
+        // Remove preload so they render in place immediately
+        cards.forEach(c => c.classList.remove('preload'));
+        cards.forEach(c => c.classList.add('loaded'));
+        return;
+      }
+
+      // Ensure `.preload` is present before scheduling `.loaded`.
+      // Then use requestAnimationFrame and a small stagger to add `.loaded`.
+      requestAnimationFrame(() => {
+        let i = 0;
+        const step = () => {
+          if (i >= cards.length) {
+            // Clean up `preload` after all cards have started animating
+            setTimeout(() => cards.forEach(c => c.classList.remove('preload')), 600);
+            return;
+          }
+          cards[i].classList.add('loaded');
+          i += 1;
+          // small timeout between items to create a pleasing cascade
+          setTimeout(() => requestAnimationFrame(step), 40);
+        };
+        step();
+      });
+    }
+
+    // Run entrance animation shortly after mount so layout has stabilized
+    setTimeout(animateCardsIn, 80);
 
     // Pausar solo con hover
     container.addEventListener('mouseenter', () => {
@@ -446,6 +484,19 @@ function bentoSize(index: number) {
     -webkit-user-select: none; /* Safari */
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* IE/Edge */
+  }
+
+  /* Entrada desde arriba: estado inicial y estado cargado */
+  .project-item.preload {
+    transform: translateY(-32px) scale(0.995);
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .project-item.loaded {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease;
   }
   
   .project-item-inner { 

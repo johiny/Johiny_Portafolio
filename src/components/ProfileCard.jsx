@@ -3,18 +3,33 @@ import ChatControl from './ChatControl.jsx';
 import "./ProfileCardStyles.css"
 import { Typewriter } from 'react-simple-typewriter'
 import { faForward, faBackward, faForwardFast  } from '@fortawesome/free-solid-svg-icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const ProfileCard = () => {
     const [profileImg, setprofileImg] = useState(johiny_photo)
     const [typeSpeed, setTypeSpeed] = useState(60)
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        // Small delay so the animation is visible when the component mounts
+        const t = setTimeout(() => setMounted(true), 60);
+        return () => clearTimeout(t);
+    }, []);
     
     return(
-        <div className="glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col">
+    <div className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col ${mounted ? 'entered' : ''}`}>
             <div className="flex flex-col items-center p-6">
                 <div className="mb-4">
                     <div className="w-32 h-32 border-gradient-1">
-                        <img src={profileImg.src} className=" object-cover object-top" alt="animate gif of johiny"/>
+                        <img
+                            src={profileImg.src}
+                            width={128}
+                            height={128}
+                            loading="lazy"
+                            decoding="async"
+                            className="object-cover object-top rounded-full w-32 h-32"
+                            alt="Johan - profile photo"
+                        />
                     </div>
                 </div>
                 <div className="flex flex-col flex-grow w-full">
