@@ -135,8 +135,42 @@ function bentoSize(index: number) {
     const actionButton = document.getElementById('macos-restore-button');
     if (!container || !track) return;
 
+    // Obtener los proyectos desde los elementos del DOM
+    const initialCards = Array.from(track.querySelectorAll('.project-item'));
+    const projects = [];
+    
+    // Extraer información de los proyectos desde las tarjetas existentes
+    initialCards.forEach((card, index) => {
+      const originalIndex = parseInt(card.getAttribute('data-index')) || 0;
+      if (originalIndex < projects.length) return; // Evitar duplicados
+      
+      const title = card.querySelector('.project-title')?.textContent || `Project ${originalIndex + 1}`;
+      const description = card.querySelector('.project-desc')?.textContent || `Description for project ${originalIndex + 1}`;
+      const url = card.href || '#';
+      
+      projects.push({
+        id: originalIndex,
+        title,
+        description,
+        url
+      });
+    });
+
+    // Asegurar que tenemos los proyectos únicos
+    const uniqueProjects = projects.filter((project, index, self) => 
+      index === self.findIndex(p => p.id === project.id)
+    );
+
+    console.log('Proyectos cargados:', uniqueProjects);
+
     // Array que rastrea los elementos que han recibido la clase 'closed-state'
     const closedProjects = [];
+    
+    // Estado para el scroll infinito dinámico
+    let currentBatch = 0;
+    let isLoading = false;
+    const BATCH_SIZE = uniqueProjects.length; // Cargar el mismo número de proyectos cada vez
+    let allProjectCards = [...uniqueProjects, ...uniqueProjects]; // Empezar con proyectos duplicados
 
     function updateRestoreButton() {
       if (!actionButton) return;
@@ -181,20 +215,285 @@ function bentoSize(index: number) {
       updateRestoreButton();
     }
 
+    // Función para crear una nueva tarjeta HTML dinámicamente
+    function createProjectCard(project, index, isDuplicate = false) {
+      const originalIndex = index % uniqueProjects.length;
+      const sizes = [
+        'w-[18rem] h-[18rem]',
+        'w-[22rem] h-[18rem]',
+        'w-[18rem] h-[24rem]',
+        'w-[26rem] h-[20rem]',
+        'w-[20rem] h-[20rem]',
+        'w-[24rem] h-[26rem]',
+        'w-[18rem] h-[22rem]',
+        'w-[22rem] h-[24rem]'
+      ];
+      
+      const projectIcons = [
+        '<svg class="w-12 h-12 gradient-icon-1" fill="none" stroke="#ff9a9e" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-2" fill="none" stroke="#fad0c4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-3" fill="none" stroke="#a1c4fd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-4" fill="none" stroke="#c2e9fb" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-1" fill="none" stroke="#ff9a9e" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-2" fill="none" stroke="#fad0c4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-3" fill="none" stroke="#a1c4fd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
+        '<svg class="w-12 h-12 gradient-icon-4" fill="none" stroke="#c2e9fb" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>'
+      ];
+
+      const gradientTitleClasses = [
+        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4',
+        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4'
+      ];
+
+      const gradientDescClasses = [
+        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4',
+        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4'
+      ];
+
+      const cardElement = document.createElement('a');
+      cardElement.href = project.url;
+      cardElement.target = '_blank';
+      cardElement.rel = 'noopener noreferrer';
+      // Usar dynamic-entry para tarjetas nuevas, preload para mantener compatibilidad
+      const entryClass = isDuplicate ? 'dynamic-entry' : 'preload';
+      cardElement.className = `project-item ${entryClass} glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`;
+      cardElement.setAttribute('data-index', originalIndex);
+      cardElement.setAttribute('data-duplicate', isDuplicate ? 'true' : 'false');
+
+      cardElement.innerHTML = `
+        <div class="window-controls absolute top-3 left-3 flex space-x-2 z-10 transition-all duration-300">
+          <div class="window-control-btn window-control-close"></div>
+          <div class="window-control-btn window-control-minimize"></div>
+          <div class="window-control-btn window-control-maximize"></div>
+        </div>
+        
+        <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full">
+          <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
+            <div>${projectIcons[originalIndex % projectIcons.length]}</div>
+          </div>
+          <h3 class="project-title text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}">${project.title}</h3>
+          <p class="project-desc text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}">${project.description}</p>
+        </div>
+      `;
+
+      return cardElement;
+    }
+
+    // Función para cargar más tarjetas dinámicamente
+    function loadMoreCards() {
+      if (isLoading) return;
+      
+      isLoading = true;
+      console.log(`Cargando batch ${currentBatch + 1}...`);
+      
+      // Simular un pequeño delay de carga (opcional)
+      setTimeout(() => {
+        const newCards = [];
+        
+        // Agregar una nueva tanda de proyectos (rotando a través de los proyectos originales)
+        for (let i = 0; i < BATCH_SIZE; i++) {
+          const projectIndex = i % uniqueProjects.length;
+          const newCard = createProjectCard(uniqueProjects[projectIndex], projectIndex, true);
+          newCards.push(newCard);
+          allProjectCards.push(uniqueProjects[projectIndex]);
+        }
+        
+        // Agregar las nuevas tarjetas al DOM con animación y estilos masonry
+        newCards.forEach((card, index) => {
+          track.appendChild(card);
+          
+          // Aplicar estilos masonry basados en el índice total de tarjetas
+          const totalCards = track.querySelectorAll('.project-item').length;
+          const cardPosition = totalCards - newCards.length + index;
+          applyMasonryStyles(card, cardPosition);
+          
+          // Forzar la aplicación de estilos de gradiente
+          forceGradientStyles(card, index);
+          
+          // Configurar event listeners para los window controls de la nueva tarjeta
+          setupCardEventListeners(card);
+          
+          // Animar la entrada de la nueva tarjeta
+          setTimeout(() => {
+            card.classList.add('loaded');
+            // Volver a aplicar estilos después de la animación para asegurar que se mantengan
+            forceGradientStyles(card, index);
+          }, index * 50); // Stagger la animación
+        });
+        
+        currentBatch++;
+        isLoading = false;
+        console.log(`Batch ${currentBatch} cargado. Total cards: ${allProjectCards.length}`);
+      }, 100); // Small delay para simular carga
+    }
+
+    // Función para aplicar estilos masonry a una tarjeta específica
+    function applyMasonryStyles(card, position) {
+      // Remover estilos masonry existentes
+      card.style.alignSelf = '';
+      card.style.marginTop = '';
+      
+      // Aplicar estilos masonry basados en la posición
+      const remainder = position % 5;
+      
+      switch(remainder) {
+        case 0:
+          card.style.alignSelf = 'flex-start';
+          break;
+        case 1:
+          card.style.alignSelf = 'center';
+          break;
+        case 2:
+          card.style.alignSelf = 'flex-end';
+          break;
+        case 3:
+          card.style.alignSelf = 'flex-start';
+          card.style.marginTop = '2rem';
+          break;
+        case 4:
+          card.style.alignSelf = 'center';
+          card.style.marginTop = '1rem';
+          break;
+      }
+    }
+
+    // Función para forzar la aplicación de estilos de gradiente
+    function forceGradientStyles(card, index) {
+      const projectIndex = parseInt(card.getAttribute('data-index')) || 0;
+      
+      const gradientTitleClasses = [
+        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4',
+        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4'
+      ];
+
+      const gradientDescClasses = [
+        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4',
+        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4'
+      ];
+
+      const title = card.querySelector('.project-title');
+      const desc = card.querySelector('.project-desc');
+      
+      if (title) {
+        // Remover todas las clases de gradiente existentes
+        gradientTitleClasses.forEach(cls => title.classList.remove(cls));
+        // Agregar la clase correcta
+        title.classList.add(gradientTitleClasses[projectIndex % gradientTitleClasses.length]);
+        
+        // Aplicar estilos inline como fallback para asegurar que se vean
+        const titleStyles = {
+          0: 'linear-gradient(45deg, #ff9a9e, #ff6b6b)',
+          1: 'linear-gradient(45deg, #fad0c4, #ffc048)',
+          2: 'linear-gradient(45deg, #a1c4fd, #667eea)',
+          3: 'linear-gradient(45deg, #c2e9fb, #764ba2)'
+        };
+        
+        const styleIndex = projectIndex % 4;
+        title.style.background = titleStyles[styleIndex];
+        title.style.webkitBackgroundClip = 'text';
+        title.style.backgroundClip = 'text';
+        title.style.webkitTextFillColor = 'transparent';
+        title.style.fontWeight = '800';
+        
+        // Text-shadow específico para cada color
+        const titleShadows = {
+          0: '0 2px 4px rgba(255, 154, 158, 0.5), 0 4px 8px rgba(255, 107, 107, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Rosa coral
+          1: '0 2px 4px rgba(250, 208, 196, 0.5), 0 4px 8px rgba(255, 192, 72, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Melocotón
+          2: '0 2px 4px rgba(161, 196, 253, 0.5), 0 4px 8px rgba(102, 126, 234, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Azul lavanda
+          3: '0 2px 4px rgba(194, 233, 251, 0.5), 0 4px 8px rgba(118, 75, 162, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)' // Azul cielo
+        };
+        
+        title.style.textShadow = titleShadows[styleIndex];
+      }
+      
+      if (desc) {
+        // Remover todas las clases de gradiente existentes
+        gradientDescClasses.forEach(cls => desc.classList.remove(cls));
+        // Agregar la clase correcta
+        desc.classList.add(gradientDescClasses[projectIndex % gradientDescClasses.length]);
+        
+        // Aplicar estilos inline como fallback
+        const descStyles = {
+          0: 'linear-gradient(45deg, #ff9a9e, #ff7a85)',
+          1: 'linear-gradient(45deg, #fad0c4, #f2b366)',
+          2: 'linear-gradient(45deg, #a1c4fd, #7b9cf0)',
+          3: 'linear-gradient(45deg, #c2e9fb, #9ec8e8)'
+        };
+        
+        const styleIndex = projectIndex % 4;
+        desc.style.background = descStyles[styleIndex];
+        desc.style.webkitBackgroundClip = 'text';
+        desc.style.backgroundClip = 'text';
+        desc.style.webkitTextFillColor = 'transparent';
+        desc.style.fontWeight = '600';
+        
+        // Text-shadow específico para cada color de descripción
+        const descShadows = {
+          0: '0 2px 4px rgba(255, 154, 158, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Rosa coral suave
+          1: '0 2px 4px rgba(250, 208, 196, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Melocotón suave
+          2: '0 2px 4px rgba(161, 196, 253, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Azul lavanda suave
+          3: '0 2px 4px rgba(194, 233, 251, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)' // Azul cielo suave
+        };
+        
+        desc.style.textShadow = descShadows[styleIndex];
+      }
+      
+      console.log(`Estilos de gradiente aplicados a tarjeta ${projectIndex}`);
+    }
+
+    // Función para configurar event listeners en una tarjeta
+    function setupCardEventListeners(card) {
+      // Configurar hover para pausar scroll
+      card.addEventListener('mouseenter', () => {
+        isPaused = true;
+        console.log('Auto-scroll pausado (hover sobre nueva tarjeta) — data-index:', card.getAttribute('data-index'));
+      });
+
+      card.addEventListener('mouseleave', () => {
+        const anyHover = Array.from(track.querySelectorAll('.project-item')).some(c => c.matches(':hover'));
+        if (!anyHover) {
+          isPaused = false;
+          console.log('Auto-scroll reanudado (ya no hay hover en tarjetas)');
+        }
+      });
+
+      // Configurar window controls
+      const windowControls = card.querySelectorAll('.window-control-btn');
+      windowControls.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const projectItem = btn.closest('.project-item');
+
+          if (btn.classList.contains('window-control-close')) {
+            handleWindowControl(e, 'close', projectItem);
+          } else if (btn.classList.contains('window-control-minimize')) {
+            handleWindowControl(e, 'minimize', projectItem);
+          } else if (btn.classList.contains('window-control-maximize')) {
+            handleWindowControl(e, 'maximize', projectItem);
+          }
+        });
+      });
+    }
+
     let isPaused = false;
     let animationId = null;
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
+    let wheelTimeout = null; // Para pausar temporalmente el auto-scroll
 
-    // Scroll automático simple y directo
+    // Scroll automático con carga dinámica infinita
     function autoScroll() {
       if (!isPaused && !isDragging) {
         container.scrollLeft += 1;
 
-        // Reset cuando llegue al final (simple wrap)
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
+        // Verificar si estamos cerca del final y necesitamos cargar más tarjetas
+        const scrollPosition = container.scrollLeft;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        const threshold = maxScroll * 0.8; // Cargar más cuando estemos al 80% del final
+        
+        if (scrollPosition >= threshold && !isLoading) {
+          console.log('Cerca del final, cargando más tarjetas...');
+          loadMoreCards();
         }
       }
       animationId = requestAnimationFrame(autoScroll);
@@ -262,35 +561,50 @@ function bentoSize(index: number) {
     // Primero removemos (si existen) los listeners previos en el container
     container.replaceWith = container.replaceWith; // noop para evitar lint; no eliminar
 
-    // Obtener todas las tarjetas (duplicadas incluidas)
-    const cards = Array.from(track.querySelectorAll('.project-item'));
-
-    // Pausar cuando el cursor entra en cualquier tarjeta
-    cards.forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        isPaused = true;
-        // opcional: dar feedback en consola para debug
-        console.log('Auto-scroll pausado (hover sobre tarjeta) — data-index:', card.getAttribute('data-index'));
-      });
-
-      card.addEventListener('mouseleave', () => {
-        // Si ninguna tarjeta está siendo hovered, reanudar
-        const anyHover = cards.some(c => c.matches(':hover'));
-        if (!anyHover) {
-          isPaused = false;
-          console.log('Auto-scroll reanudado (ya no hay hover en tarjetas)');
-        }
-      });
+    // Configurar event listeners para las tarjetas iniciales (ya declaradas arriba)
+    initialCards.forEach(card => {
+      setupCardEventListeners(card);
     });
 
     // Eliminar/ignorar pause por hover en todo el contenedor (evitar duplicidad)
     // Si ya existían listeners `container.addEventListener('mouseenter' ...)`,
     // bórralos o coméntalos para evitar conflicto.
 
-    // Wheel scroll
+    // Wheel scroll - Convertir scroll vertical en horizontal con carga dinámica
     container.addEventListener('wheel', (e) => {
       e.preventDefault();
-      container.scrollLeft += e.deltaY * 2;
+      
+      // Pausar el scroll automático temporalmente cuando el usuario usa la rueda
+      isPaused = true;
+      if (wheelTimeout) clearTimeout(wheelTimeout);
+      
+      // Usar deltaY (scroll vertical) para controlar scrollLeft (scroll horizontal)
+      const scrollSpeed = 3; // Velocidad de scroll ajustable
+      const newScrollPosition = container.scrollLeft + (e.deltaY * scrollSpeed);
+      
+      // Verificar si necesitamos cargar más tarjetas antes de hacer scroll
+      const maxScroll = container.scrollWidth - container.clientWidth;
+      const threshold = maxScroll * 0.8;
+      
+      if (newScrollPosition >= threshold && !isLoading) {
+        console.log('Wheel scroll cerca del final, cargando más tarjetas...');
+        loadMoreCards();
+      }
+      
+      // Aplicar el scroll
+      container.scrollLeft = newScrollPosition;
+      
+      // Prevenir scroll negativo
+      if (container.scrollLeft < 0) {
+        container.scrollLeft = 0;
+      }
+      
+      // Reanudar el scroll automático después de 2 segundos de inactividad
+      wheelTimeout = setTimeout(() => {
+        isPaused = false;
+        console.log('Auto-scroll reanudado después de usar la rueda');
+      }, 2000);
+      
     }, { passive: false });
 
     // Drag functionality
@@ -530,6 +844,18 @@ function bentoSize(index: number) {
     opacity: 1;
     transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease;
   }
+
+  /* Animación específica para tarjetas cargadas dinámicamente */
+  .project-item.dynamic-entry {
+    transform: translateX(50px) scale(0.95);
+    opacity: 0;
+    transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .project-item.dynamic-entry.loaded {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
   
   .project-item-inner { 
     height: 100%; 
@@ -573,6 +899,31 @@ function bentoSize(index: number) {
       padding: 1rem;
       gap: 1rem;
     }
+  }
+
+  /* Asegurar que las nuevas tarjetas también reciban los estilos masonry */
+  .project-item.dynamic-entry {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+  }
+
+  /* Forzar estilos de gradiente en tarjetas dinámicas */
+  .project-item.dynamic-entry .project-title {
+    font-family: "Pixelify Sans", cursive !important;
+    font-weight: 800 !important;
+    font-size: 1.25rem !important;
+    letter-spacing: 0.03em !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .project-item.dynamic-entry .project-desc {
+    font-family: "Pixelify Sans", cursive !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.6 !important;
+    letter-spacing: 0.025em !important;
+    transition: all 0.3s ease !important;
   }
 
   /* Estilo de tarjeta glass mejorado - Mayor contraste y legibilidad */
