@@ -11,8 +11,8 @@ const ProfileCard = () => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Small delay so the animation is visible when the component mounts
-        const t = setTimeout(() => setMounted(true), 60);
+        // Delay a few seconds before sliding in from the right
+        const t = setTimeout(() => setMounted(true), 1200);
         return () => clearTimeout(t);
     }, []);
     

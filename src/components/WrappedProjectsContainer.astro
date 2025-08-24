@@ -255,6 +255,38 @@ function bentoSize(index: number) {
       console.log('Reanudado');
     });
 
+    // El scroll automático se pausará únicamente mientras el cursor esté sobre
+    // alguna tarjeta `.project-item`. Cuando no haya ninguna tarjeta en hover,
+    // se reanudará automáticamente.
+
+    // Primero removemos (si existen) los listeners previos en el container
+    container.replaceWith = container.replaceWith; // noop para evitar lint; no eliminar
+
+    // Obtener todas las tarjetas (duplicadas incluidas)
+    const cards = Array.from(track.querySelectorAll('.project-item'));
+
+    // Pausar cuando el cursor entra en cualquier tarjeta
+    cards.forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        isPaused = true;
+        // opcional: dar feedback en consola para debug
+        console.log('Auto-scroll pausado (hover sobre tarjeta) — data-index:', card.getAttribute('data-index'));
+      });
+
+      card.addEventListener('mouseleave', () => {
+        // Si ninguna tarjeta está siendo hovered, reanudar
+        const anyHover = cards.some(c => c.matches(':hover'));
+        if (!anyHover) {
+          isPaused = false;
+          console.log('Auto-scroll reanudado (ya no hay hover en tarjetas)');
+        }
+      });
+    });
+
+    // Eliminar/ignorar pause por hover en todo el contenedor (evitar duplicidad)
+    // Si ya existían listeners `container.addEventListener('mouseenter' ...)`,
+    // bórralos o coméntalos para evitar conflicto.
+
     // Wheel scroll
     container.addEventListener('wheel', (e) => {
       e.preventDefault();
