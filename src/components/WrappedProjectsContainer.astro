@@ -103,8 +103,8 @@ function bentoSize(index: number) {
                 <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
                   <div set:html={projectIcons[originalIndex % projectIcons.length]} />
                 </div>
-                <h3 class={`project-title text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}`}>{project.title}</h3>
-                <p class={`project-desc text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}`}>{project.description}</p>
+                <h3 class={`project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}`}>{project.title}</h3>
+                <p class={`project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}`}>{project.description}</p>
               </div>
             </a>
           );
@@ -271,8 +271,8 @@ function bentoSize(index: number) {
           <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
             <div>${projectIcons[originalIndex % projectIcons.length]}</div>
           </div>
-          <h3 class="project-title text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}">${project.title}</h3>
-          <p class="project-desc text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}">${project.description}</p>
+          <h3 class="project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}">${project.title}</h3>
+          <p class="project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}">${project.description}</p>
         </div>
       `;
 
@@ -393,7 +393,7 @@ function bentoSize(index: number) {
         title.style.webkitBackgroundClip = 'text';
         title.style.backgroundClip = 'text';
         title.style.webkitTextFillColor = 'transparent';
-        title.style.fontWeight = '800';
+  title.style.fontWeight = '500';
         
         // Text-shadow específico para cada color
         const titleShadows = {
@@ -425,7 +425,7 @@ function bentoSize(index: number) {
         desc.style.webkitBackgroundClip = 'text';
         desc.style.backgroundClip = 'text';
         desc.style.webkitTextFillColor = 'transparent';
-        desc.style.fontWeight = '600';
+  desc.style.fontWeight = '500';
         
         // Text-shadow específico para cada color de descripción
         const descShadows = {
@@ -776,14 +776,14 @@ function bentoSize(index: number) {
 </script>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap");
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
 
   /* Layout infinito horizontal */
   .projects-infinite-wrapper { 
     height: 100vh; 
     position: relative;
     overflow: hidden;
-    font-family: "Pixelify Sans", cursive;
+    font-family: 'Poppins', sans-serif;
   }
   
   .infinite-container { 
@@ -866,14 +866,24 @@ function bentoSize(index: number) {
     -ms-user-select: none;
   }
 
-  /* Asegurar que títulos y descripciones usen Pixelify Sans */
+  /* Asegurar que títulos y descripciones usen Poppins (wght 500) */
   .project-title,
   .project-desc {
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
-    font-family: "Pixelify Sans", cursive;
+    font-weight: 500 !important;
+  }
+
+  /* Generic base class for project title and description
+     - centralizes font-family, size and common text properties
+     - keep gradient classes only for colors/shadows/customs */
+  .project-text-base {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    transition: all 0.25s ease;
   }
 
   /* Crear efecto masonry con diferentes alturas */
@@ -910,20 +920,16 @@ function bentoSize(index: number) {
 
   /* Forzar estilos de gradiente en tarjetas dinámicas */
   .project-item.dynamic-entry .project-title {
-    font-family: "Pixelify Sans", cursive !important;
-    font-weight: 800 !important;
-    font-size: 1.25rem !important;
-    letter-spacing: 0.03em !important;
-    transition: all 0.3s ease !important;
+  font-size: 1.25rem !important;
+  letter-spacing: 0.03em !important;
+  transition: all 0.3s ease !important;
   }
 
   .project-item.dynamic-entry .project-desc {
-    font-family: "Pixelify Sans", cursive !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-    line-height: 1.6 !important;
-    letter-spacing: 0.025em !important;
-    transition: all 0.3s ease !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.025em !important;
+  transition: all 0.3s ease !important;
   }
 
   /* Estilo de tarjeta glass mejorado - Mayor contraste y legibilidad */
@@ -932,7 +938,7 @@ function bentoSize(index: number) {
     backdrop-filter: blur(25px);
     -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255, 255, 255, 0.4); /* Borde más visible */
-    font-family: "Pixelify Sans", cursive;
+  font-family: 'Poppins', sans-serif;
     box-shadow: 
       0 12px 40px rgba(0, 0, 0, 0.15), /* Sombras más pronunciadas */
       0 6px 20px rgba(0, 0, 0, 0.08),
@@ -1115,9 +1121,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 800; /* Más bold para mejor contraste */
-    font-size: 1.25rem; /* Más grande para mejor legibilidad */
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(255, 154, 158, 0.5),
       0 4px 8px rgba(255, 107, 107, 0.3),
@@ -1131,9 +1135,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 800;
-    font-size: 1.25rem;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(250, 208, 196, 0.5),
       0 4px 8px rgba(255, 192, 72, 0.3),
@@ -1147,9 +1149,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 800;
-    font-size: 1.25rem;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(161, 196, 253, 0.5),
       0 4px 8px rgba(102, 126, 234, 0.3),
@@ -1163,9 +1163,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 800;
-    font-size: 1.25rem;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(194, 233, 251, 0.5),
       0 4px 8px rgba(118, 75, 162, 0.3),
@@ -1180,11 +1178,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 600; /* Más peso para mejor visibilidad */
-    font-size: 0.95rem; /* Ligeramente más grande */
-    line-height: 1.6; /* Mejor interlineado */
-    letter-spacing: 0.025em; /* Espaciado mejorado */
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(255, 154, 158, 0.4),
       0 1px 2px rgba(0, 0, 0, 0.08); /* Sombra negra sutil */
@@ -1196,11 +1190,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 600;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    letter-spacing: 0.025em;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(250, 208, 196, 0.4),
       0 1px 2px rgba(0, 0, 0, 0.08);
@@ -1212,11 +1202,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 600;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    letter-spacing: 0.025em;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(161, 196, 253, 0.4),
       0 1px 2px rgba(0, 0, 0, 0.08);
@@ -1228,11 +1214,7 @@ function bentoSize(index: number) {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-family: "Pixelify Sans", cursive;
-    font-weight: 600;
-    font-size: 0.95rem;
-    line-height: 1.6;
-    letter-spacing: 0.025em;
+  /* color/gradient only - font size/family are in .project-text-base */
     text-shadow: 
       0 2px 4px rgba(194, 233, 251, 0.4),
       0 1px 2px rgba(0, 0, 0, 0.08);
@@ -1468,7 +1450,7 @@ function bentoSize(index: number) {
   }
 
   .macos-restore-label {
-    font-family: "Pixelify Sans", cursive;
+  font-family: 'Poppins', sans-serif;
     font-weight: 700;
     font-size: 0.9rem;
     line-height: 1;
