@@ -778,6 +778,23 @@ function bentoSize(index: number) {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
 
+  /* CSS variables for macOS-like text colors and sizes */
+  :root {
+    --project-text-color: rgba(0,0,0,0.85);
+    --project-muted-color: rgba(0,0,0,0.55);
+    --project-hint-color: rgba(0,0,0,0.35);
+
+    --project-title-size: 1.25rem; /* 20px */
+    --project-desc-size: 0.95rem;  /* ~15px */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --project-text-color: rgba(255,255,255,0.92);
+      --project-muted-color: rgba(255,255,255,0.75);
+      --project-hint-color: rgba(255,255,255,0.55);
+    }
+  }
   /* Layout infinito horizontal */
   .projects-infinite-wrapper { 
     height: 100vh; 
@@ -880,11 +897,16 @@ function bentoSize(index: number) {
      - centralizes font-family, size and common text properties
      - keep gradient classes only for colors/shadows/customs */
   .project-text-base {
-    font-family: 'Poppins', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--project-text-color);
     font-weight: 500;
     letter-spacing: 0.02em;
-    transition: all 0.25s ease;
+    transition: color 160ms ease, opacity 160ms ease;
   }
+
+  /* size helpers (apply as needed; template already uses text-lg/text-sm utilities) */
+  .project-text-base.title { font-size: var(--project-title-size); }
+  .project-text-base.desc { font-size: var(--project-desc-size); color: var(--project-muted-color); }
 
   /* Crear efecto masonry con diferentes alturas */
   .project-item:nth-child(5n+1) { align-self: flex-start; }
@@ -1159,7 +1181,7 @@ function bentoSize(index: number) {
   }
   
   .gradient-text-title-4 {
-    background: linear-gradient(45deg, #c2e9fb, #764ba2);
+    background: linear-gradient(45deg, #0019be, #764ba2);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -1210,7 +1232,7 @@ function bentoSize(index: number) {
   }
   
   .gradient-text-desc-4 {
-    background: linear-gradient(45deg, #c2e9fb, #9ec8e8);
+    background: linear-gradient(45deg, #075274, #9ec8e8);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
