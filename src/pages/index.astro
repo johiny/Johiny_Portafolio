@@ -2,6 +2,7 @@
 import WebContainer from '../layouts/WebContainer.astro';
 import ProfileCard from '../components/ProfileCard.jsx';
 import ProjectLayout from '../components/ProjectLayout.astro';
+import MacNavBar from '../components/MacNavBar.astro';
 
 const projects = [
   { 
@@ -110,6 +111,7 @@ const projects = [
 </head>
 
 <WebContainer>
+  <MacNavBar linkedin="https://www.linkedin.com/in/johiny" github="https://github.com/johiny" x="https://x.com/johiny" />
   <div class="layers-container">
     <!-- Grid superior: ProfileCard -->
     <div class="grid-layer profile-grid">
@@ -133,7 +135,7 @@ const projects = [
     position: relative;
   min-height: 100vh;
   height: 100vh; /* fuerza altura exacta para capas absolutas */
-    padding: 1rem 1rem 1.5rem 1rem;
+    padding: calc(var(--macbar-height, 56px) + 0.2rem) 1rem 1.5rem 1rem; /* leave space for fixed nav */
   }
 
   .grid-layer {
@@ -149,8 +151,9 @@ const projects = [
 
   /* Profile grid por encima */
   .profile-grid {
-    z-index: 20;
+    z-index: 10001; /* place profile grid above the nav */
     pointer-events: none; /* deja interactuar proyectos salvo card */
+    position: relative;
   }
   .profile-card-wrapper {
     pointer-events: auto;
@@ -160,6 +163,8 @@ const projects = [
     width: 100%;
     max-width: none; /* quitar límite */
     margin-top: 0.25rem;
+    position: relative;
+    z-index: 10002; /* ensure card floats above nav */
   }
   .profile-col {
     grid-column: 1 / span 1;

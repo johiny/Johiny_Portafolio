@@ -1,0 +1,166 @@
+---
+// A simple macOS-like top navigation bar showing social icons
+interface Props {
+  linkedin?: string;
+  github?: string;
+  x?: string; // X/Twitter
+}
+const { linkedin = 'https://www.linkedin.com/in/johan-sebastian-c-mazo/', github = 'https://github.com/johiny', x = 'https://x.com/johinyDev' } = Astro.props;
+---
+
+<style>
+/* Inlined MacNavBar styles to avoid external path issues */
+:root {
+  --macbar-height: 40px; /* thinner nav */
+  --macbar-bg: rgba(255,255,255,0.36);
+  --macbar-border: rgba(255,255,255,0.5);
+  --macbar-accent: #4f46e5;
+  --macbar-text: rgba(0,0,0,0.75);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --macbar-bg: rgba(12,12,12,0.44);
+    --macbar-border: rgba(255,255,255,0.06);
+    --macbar-text: rgba(255,255,255,0.92);
+  }
+}
+
+.mac-nav {
+  position: fixed; /* fixed to ensure visibility */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--macbar-height);
+  display: flex;
+  align-items: center;
+  z-index: 9999; /* ensure highest visibility above layout layers */
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  background: linear-gradient(180deg, var(--macbar-bg), rgba(255,255,255,0.02));
+  border-bottom: 1px solid var(--macbar-border);
+}
+
+.mac-nav-inner {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  gap: 12px;
+}
+
+
+/* keep a left spacer where controls were, but no colored buttons */
+.window-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  width: 36px; /* reserve space without showing buttons */
+}
+
+.mac-nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  pointer-events: none;
+}
+
+.mac-title {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  color: var(--macbar-text);
+  opacity: 0.9;
+  letter-spacing: 0.02em;
+  font-size: 0.95rem;
+}
+
+.mac-social {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-left: auto; /* push social icons to the right edge */
+}
+
+.mac-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* slightly larger */
+  height: 40px;
+  border-radius: 10px;
+  color: var(--macbar-text);
+  transition: background 140ms ease, transform 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  text-decoration: none;
+}
+
+.mac-social-link:focus-visible {
+  outline: 3px solid rgba(79,70,229,0.12);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.mac-social-link:hover {
+  background: rgba(0,0,0,0.04);
+  transform: translateY(-2px);
+}
+
+.mac-icon {
+  width: 16px; /* slightly larger */
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+}
+
+@media (max-width: 640px) {
+  .mac-nav-inner { padding: 0 0.5rem; }
+  .mac-title { display: none; }
+  .mac-social-link { width: 36px; height: 36px; border-radius: 8px; }
+}
+</style>
+
+<header class="mac-nav" role="navigation" aria-label="Top social navigation">
+  <div class="mac-nav-inner">
+    <div class="window-controls" aria-hidden>
+      <span class="wc wc-close"></span>
+      <span class="wc wc-min"></span>
+      <span class="wc wc-max"></span>
+    </div>
+
+    <div class="mac-nav-center" aria-hidden>
+      <span class="mac-title">Johiny</span>
+    </div>
+
+    <nav class="mac-social" aria-label="Social links">
+      <a class="mac-social-link" href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M16 8a6 6 0 016 6v6h-4v-6a2 2 0 00-2-2 2 2 0 00-2 2v6h-4v-12h4v2.2c.9-1.6 3-2.2 4-1z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="2" y="6" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.25" fill="none"/>
+          <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="1.25" fill="none"/>
+        </svg>
+      </a>
+
+      <a class="mac-social-link" href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M12 2C7.03 2 3 6.03 3 11c0 4 2.53 7.37 6.04 8.57.44.08.6-.19.6-.42v-1.5c-2.45.53-2.96-1.03-2.96-1.03-.4-1.03-.98-1.3-.98-1.3-.8-.55.06-.54.06-.54.88.06 1.34.9 1.34.9.78 1.34 2.05.95 2.55.73.08-.58.3-.95.55-1.17-1.96-.23-4.02-.98-4.02-4.36 0-.96.34-1.74.9-2.36-.09-.23-.39-1.16.08-2.41 0 0 .72-.23 2.36.9a8.2 8.2 0 012.15-.29c.73 0 1.47.1 2.15.29 1.64-1.13 2.36-.9 2.36-.9.47 1.25.17 2.18.08 2.41.56.62.9 1.4.9 2.36 0 3.39-2.07 4.12-4.04 4.34.31.26.58.77.58 1.55v2.3c0 .23.16.5.61.42C18.47 18.37 21 15 21 11c0-4.97-4.03-9-9-9z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <a class="mac-social-link" href={x} target="_blank" rel="noopener noreferrer" aria-label="X">
+        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M18 6L10 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 6l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <a class="mac-social-link" href="mailto:johinymazzo@gmail.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+          <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </nav>
+  </div>
+</header>

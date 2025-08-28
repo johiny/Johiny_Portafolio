@@ -1,0 +1,120 @@
+/* MacNavBar.css - macOS-like top navigation bar for social links */
+
+:root {
+  --macbar-height: 56px;
+  --macbar-bg: rgba(255,255,255,0.36);
+  --macbar-border: rgba(255,255,255,0.5);
+  --macbar-accent: #4f46e5;
+  --macbar-text: rgba(0,0,0,0.75);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --macbar-bg: rgba(12,12,12,0.44);
+    --macbar-border: rgba(255,255,255,0.06);
+    --macbar-text: rgba(255,255,255,0.92);
+  }
+}
+
+.mac-nav {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--macbar-height);
+  display: flex;
+  align-items: center;
+  z-index: 1400;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  background: linear-gradient(180deg, var(--macbar-bg), rgba(255,255,255,0.02));
+  border-bottom: 1px solid var(--macbar-border);
+}
+
+.mac-nav-inner {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  gap: 12px;
+}
+
+.window-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.wc {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.wc-close { background: linear-gradient(135deg,#ff6058,#ff4d4d); }
+.wc-min { background: linear-gradient(135deg,#ffca2c,#ffb000); }
+.wc-max { background: linear-gradient(135deg,#32d74b,#28a745); }
+
+.mac-nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  pointer-events: none;
+}
+
+.mac-title {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 600;
+  color: var(--macbar-text);
+  opacity: 0.9;
+  letter-spacing: 0.02em;
+}
+
+.mac-social {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.mac-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--macbar-text);
+  transition: background 180ms ease, transform 180ms ease, color 180ms ease, box-shadow 180ms ease;
+  text-decoration: none;
+}
+
+.mac-social-link:focus-visible {
+  outline: 3px solid rgba(79,70,229,0.12);
+  outline-offset: 4px;
+  border-radius: 10px;
+}
+
+.mac-social-link:hover {
+  background: rgba(0,0,0,0.04);
+  transform: translateY(-2px);
+}
+
+.mac-icon {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+}
+
+/* Small screens: compress spacing and hide center title */
+@media (max-width: 640px) {
+  .mac-nav-inner { padding: 0 0.5rem; }
+  .mac-title { display: none; }
+  .mac-social-link { width: 36px; height: 36px; border-radius: 8px; }
+}
