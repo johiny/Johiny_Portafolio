@@ -18,7 +18,14 @@ const ProfileCard = () => {
     
     return(
     <div className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col ${mounted ? 'entered' : ''}`}>
-            <div className="flex flex-col items-center p-6">
+           {/* MacOS Window Controls Wrapper */}
+           <div className="window-controls-react">
+               <div className="window-control-btn-react window-control-close-react"></div>
+               <div className="window-control-btn-react window-control-minimize-react"></div>
+               <div className="window-control-btn-react window-control-maximize-react"></div>
+           </div>
+           
+            <div className="flex flex-col items-center p-6 pt-10">
                 <div className="mb-4">
                     <div className="w-32 h-32 border-gradient-1">
                         <img

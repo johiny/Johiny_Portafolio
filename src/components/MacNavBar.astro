@@ -1,165 +1,172 @@
 ---
-// A simple macOS-like top navigation bar showing social icons
+// A macOS-like system menu bar (Time, Battery, Wifi, Menu items)
 interface Props {
   linkedin?: string;
   github?: string;
-  x?: string; // X/Twitter
+  x?: string; 
 }
-const { linkedin = 'https://www.linkedin.com/in/johan-sebastian-c-mazo/', github = 'https://github.com/johiny', x = 'https://x.com/johinyDev' } = Astro.props;
+const { linkedin, github, x } = Astro.props; // Props are now unused here but kept for compatibility
 ---
 
 <style>
-/* Inlined MacNavBar styles to avoid external path issues */
+/* macOS Menu Bar Styles */
 :root {
-  --macbar-height: 40px; /* thinner nav */
-  --macbar-bg: rgba(255,255,255,0.36);
-  --macbar-border: rgba(255,255,255,0.5);
-  --macbar-accent: #4f46e5;
-  --macbar-text: rgba(0,0,0,0.75);
+  --macbar-height: 32px; /* Authentic macOS height */
+  --macbar-bg: rgba(255,255,255,0.3);
+  --macbar-text: rgba(0,0,0,0.9);
+  --macbar-text-shadow: none;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --macbar-bg: rgba(12,12,12,0.44);
-    --macbar-border: rgba(255,255,255,0.06);
-    --macbar-text: rgba(255,255,255,0.92);
+    --macbar-bg: rgba(0,0,0,0.3);
+    --macbar-text: rgba(255,255,255,0.95);
+    --macbar-text-shadow: 0 1px 2px rgba(0,0,0,0.2);
   }
 }
 
 .mac-nav {
-  position: fixed; /* fixed to ensure visibility */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   height: var(--macbar-height);
   display: flex;
   align-items: center;
-  z-index: 9999; /* ensure highest visibility above layout layers */
-  backdrop-filter: blur(8px) saturate(120%);
-  -webkit-backdrop-filter: blur(8px) saturate(120%);
-  background: linear-gradient(180deg, var(--macbar-bg), rgba(255,255,255,0.02));
-  border-bottom: 1px solid var(--macbar-border);
-}
-
-.mac-nav-inner {
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  background: var(--macbar-bg);
+  /* No border in modern macOS, just shadow or contrast */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  user-select: none;
+  padding: 0 12px;
   justify-content: space-between;
-  padding: 0 1rem;
-  gap: 12px;
-}
-
-
-/* keep a left spacer where controls were, but no colored buttons */
-.window-controls {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  width: 36px; /* reserve space without showing buttons */
-}
-
-.mac-nav-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1 1 auto;
-  pointer-events: none;
-}
-
-.mac-title {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-weight: 600;
   color: var(--macbar-text);
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: var(--macbar-text-shadow);
+}
+
+.mac-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.mac-apple-logo {
   opacity: 0.9;
-  letter-spacing: 0.02em;
-  font-size: 0.95rem;
-}
-
-.mac-social {
   display: flex;
-  gap: 12px;
   align-items: center;
-  margin-left: auto; /* push social icons to the right edge */
 }
 
-.mac-social-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px; /* slightly larger */
-  height: 40px;
-  border-radius: 10px;
-  color: var(--macbar-text);
-  transition: background 140ms ease, transform 140ms ease, color 140ms ease, box-shadow 140ms ease;
-  text-decoration: none;
+.mac-app-name {
+  font-weight: 700;
+  cursor: default;
 }
 
-.mac-social-link:focus-visible {
-  outline: 3px solid rgba(79,70,229,0.12);
-  outline-offset: 4px;
-  border-radius: 10px;
+.mac-menu-items {
+  display: flex;
+  gap: 18px;
 }
 
-.mac-social-link:hover {
-  background: rgba(0,0,0,0.04);
-  transform: translateY(-2px);
+.mac-menu-item {
+  cursor: default;
+  opacity: 0.9;
 }
 
-.mac-icon {
-  width: 16px; /* slightly larger */
-  height: 16px;
-  stroke: currentColor;
-  fill: none;
+.mac-menu-item:hover, .mac-apple-logo:hover {
+  opacity: 0.6;
 }
 
+/* Hide menu items on mobile */
 @media (max-width: 640px) {
-  .mac-nav-inner { padding: 0 0.5rem; }
-  .mac-title { display: none; }
-  .mac-social-link { width: 36px; height: 36px; border-radius: 8px; }
+  .mac-menu-items { display: none; }
+}
+
+.mac-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mac-status-item {
+  display: flex;
+  align-items: center;
+  opacity: 0.9;
+  cursor: default;
+}
+
+.mac-clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
 }
 </style>
 
-<header class="mac-nav" role="navigation" aria-label="Top social navigation">
-  <div class="mac-nav-inner">
-    <div class="window-controls" aria-hidden>
-      <span class="wc wc-close"></span>
-      <span class="wc wc-min"></span>
-      <span class="wc wc-max"></span>
+<header class="mac-nav" role="navigation" aria-label="System Menu Bar">
+  <!-- Left Side: Apple Logo + Menus -->
+  <div class="mac-left">
+    <div class="mac-apple-logo">
+      <svg viewBox="0 0 17 20" width="15" height="15" fill="currentColor">
+        <path d="M12.923 9.423c-.022-2.19 1.777-3.237 1.854-3.286-1.009-1.48-2.585-1.683-3.149-1.706-1.332-.136-2.6.786-3.277.786-.671 0-1.714-.766-2.825-.745-1.455.023-2.793.85-3.542 2.155-1.51 2.622-.387 6.505 1.077 8.647.723 1.045 1.572 2.227 2.697 2.185 1.076-.043 1.484-.698 2.783-.698 1.294 0 1.666.698 2.802.676 1.16-.021 1.896-1.054 2.607-2.097.818-1.2 1.155-2.362 1.163-2.424-.029-.011-2.235-.862-2.19-3.493M11.536 2.08c.594-.727.994-1.73.886-2.73-1.026.04-2.261.688-2.997 1.55-.544.629-.86 1.637-.751 2.604 1.144.089 2.296-.663 2.862-1.424"/>
+      </svg>
+    </div>
+    
+    <div class="mac-app-name">Johiny</div>
+    
+    <div class="mac-menu-items">
+      <div class="mac-menu-item">File</div>
+      <div class="mac-menu-item">Edit</div>
+      <div class="mac-menu-item">View</div>
+      <div class="mac-menu-item">Window</div>
+      <div class="mac-menu-item">Help</div>
+    </div>
+  </div>
+
+  <!-- Right Side: Status Icons + Clock -->
+  <div class="mac-right">
+    <!-- Wifi -->
+    <div class="mac-status-item" title="Wi-Fi">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+        </svg>
     </div>
 
-    <div class="mac-nav-center" aria-hidden>
-      <span class="mac-title">Johiny</span>
+    <!-- Battery -->
+    <div class="mac-status-item" title="Battery: 100%">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20" stroke-width="2">
+           <!-- Body -->
+           <rect x="2" y="7" width="16" height="10" rx="2.5" ry="2.5"></rect>
+           <!-- Cap -->
+           <path d="M20 10v4" stroke-linecap="round"/>
+           <!-- Fill -->
+           <rect x="4.5" y="9.5" width="11" height="5" rx="0.5" fill="currentColor" stroke="none"></rect>
+        </svg>
     </div>
 
-    <nav class="mac-social" aria-label="Social links">
-      <a class="mac-social-link" href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M16 8a6 6 0 016 6v6h-4v-6a2 2 0 00-2-2 2 2 0 00-2 2v6h-4v-12h4v2.2c.9-1.6 3-2.2 4-1z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="2" y="6" width="4" height="12" rx="1" stroke="currentColor" stroke-width="1.25" fill="none"/>
-          <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="1.25" fill="none"/>
-        </svg>
-      </a>
+    <!-- Control Center -->
+    <div class="mac-status-item" title="Control Center">
+         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+         </svg>
+    </div>
 
-      <a class="mac-social-link" href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M12 2C7.03 2 3 6.03 3 11c0 4 2.53 7.37 6.04 8.57.44.08.6-.19.6-.42v-1.5c-2.45.53-2.96-1.03-2.96-1.03-.4-1.03-.98-1.3-.98-1.3-.8-.55.06-.54.06-.54.88.06 1.34.9 1.34.9.78 1.34 2.05.95 2.55.73.08-.58.3-.95.55-1.17-1.96-.23-4.02-.98-4.02-4.36 0-.96.34-1.74.9-2.36-.09-.23-.39-1.16.08-2.41 0 0 .72-.23 2.36.9a8.2 8.2 0 012.15-.29c.73 0 1.47.1 2.15.29 1.64-1.13 2.36-.9 2.36-.9.47 1.25.17 2.18.08 2.41.56.62.9 1.4.9 2.36 0 3.39-2.07 4.12-4.04 4.34.31.26.58.77.58 1.55v2.3c0 .23.16.5.61.42C18.47 18.37 21 15 21 11c0-4.97-4.03-9-9-9z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-
-      <a class="mac-social-link" href={x} target="_blank" rel="noopener noreferrer" aria-label="X">
-        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M18.9 2.25h1.2l-7.5 8.5 8.8 11.5h-3.8l-5.5-7.1L5.2 22.25H1.4l8.1-9.2L1.9 2.25h3.9l4.9 6.4zm-1.3 17.8h1.1L7.3 4.2H6.1z" fill="currentColor"/>
-        </svg>
-      </a>
-
-      <a class="mac-social-link" href="mailto:johinymazzo@gmail.com" aria-label="Email">
-        <svg viewBox="0 0 24 24" class="mac-icon" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-    </nav>
+    <!-- Clock -->
+    <div class="mac-status-item mac-clock">
+        <span id="mac-clock-time">Mon Jun 22 9:41 AM</span>
+    </div>
   </div>
 </header>
+
+<script is:inline>
+  function updateClock() {
+    const now = new Date();
+    // Format: "Mon Jun 22 9:41 AM" without comma
+    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    const timeString = now.toLocaleDateString('en-US', options).replace(',', '');
+    const clockEl = document.getElementById('mac-clock-time');
+    if (clockEl) clockEl.textContent = timeString;
+  }
+  updateClock();
+  setInterval(updateClock, 1000 * 30);
+</script>

@@ -127,3 +127,75 @@
   transform: translateX(0) scale(1);
   opacity: 1;
 }
+
+/* MacOS Window Controls for React Component */
+.window-controls-react {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.window-control-btn-react {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.window-control-close-react {
+  background: linear-gradient(135deg, #ff6058 0%, #ff4d4d 100%);
+}
+
+.window-control-minimize-react {
+  background: linear-gradient(135deg, #ffca2c 0%, #ffb000 100%);
+}
+
+.window-control-maximize-react {
+  background: linear-gradient(135deg, #32d74b 0%, #28a745 100%);
+}
+
+/* Icons on hover */
+.window-controls-react:hover .window-control-btn-react {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.window-controls-react:hover .window-control-close-react::after {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #8B1538;
+  font-size: 8px;
+  font-weight: bold;
+}
+
+.window-controls-react:hover .window-control-minimize-react::after {
+  content: '−';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #B45309;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.window-controls-react:hover .window-control-maximize-react::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #15803D;
+  font-size: 10px;
+  font-weight: bold;
+}

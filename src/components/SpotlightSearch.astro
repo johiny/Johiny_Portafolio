@@ -1,0 +1,274 @@
+<!-- SpotlightSearch.astro -->
+<div id="spotlight-overlay" class="spotlight-overlay hidden">
+  <div class="spotlight-container">
+    <div class="spotlight-search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <input type="text" id="spotlight-input" placeholder="Search Projects..." autocomplete="off" />
+    </div>
+    <div id="spotlight-results" class="spotlight-results hidden">
+      <!-- Results injected here -->
+    </div>
+    <div class="spotlight-footer">
+        <span>Cmd + Space to open</span>
+        <span>Esc to close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const overlay = document.getElementById('spotlight-overlay');
+  const input = document.getElementById('spotlight-input');
+  const resultsContainer = document.getElementById('spotlight-results');
+
+  // Toggle spotlight with Cmd/Ctrl + K or Cmd/Ctrl + Space
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === ' ')) {
+      e.preventDefault();
+      toggleSpotlight();
+    }
+    if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
+      closeSpotlight();
+    }
+  });
+
+  // Close when clicking outside
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeSpotlight();
+    }
+  });
+
+  function toggleSpotlight() {
+    if (overlay.classList.contains('hidden')) {
+        openSpotlight();
+    } else {
+        closeSpotlight();
+    }
+  }
+
+  function openSpotlight() {
+    overlay.classList.remove('hidden');
+    input.value = '';
+    resultsContainer.innerHTML = '';
+    resultsContainer.classList.add('hidden');
+    input.focus();
+  }
+
+  function closeSpotlight() {
+    overlay.classList.add('hidden');
+  }
+
+  // Live search logic
+  input.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase();
+    if (query.length === 0) {
+        resultsContainer.classList.add('hidden');
+        return;
+    }
+
+    // Grab projects from the DOM (assuming .project-item elements exist)
+    // We can also query the array if we had it, but DOM scraping is easier for this component isolation
+    const projectCards = document.querySelectorAll('.project-item');
+    const projects = Array.from(projectCards).map(card => {
+        return {
+           title: card.querySelector('.project-title')?.innerText || '',
+           desc: card.querySelector('.project-desc')?.innerText || '',
+           url: card.href,
+           element: card
+        };
+    });
+
+    // Simple fuzzy filtering
+    // Use a Set to avoid duplicates if cards are cloned for infinite scroll
+    const seenTitles = new Set();
+    const matches = projects.filter(p => {
+        const match = p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
+        if (match && !seenTitles.has(p.title)) {
+            seenTitles.add(p.title);
+            return true;
+        }
+        return false;
+    });
+
+    renderResults(matches);
+  });
+
+  function renderResults(matches) {
+    if (matches.length === 0) {
+        resultsContainer.innerHTML = '<div class="no-results">No projects found</div>';
+        resultsContainer.classList.remove('hidden');
+        return;
+    }
+
+    const html = matches.slice(0, 5).map(m => `
+        <a href="${m.url}" target="_blank" class="spotlight-result-item">
+            <div class="result-icon">
+               <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+               </svg>
+            </div>
+            <div class="result-info">
+                <div class="result-title">${m.title}</div>
+                <div class="result-desc">${m.desc.substring(0, 40)}${m.desc.length > 40 ? '...' : ''}</div>
+            </div>
+            <div class="result-enter">↩</div>
+        </a>
+    `).join('');
+
+    resultsContainer.innerHTML = html;
+    resultsContainer.classList.remove('hidden');
+  }
+
+</script>
+
+<style>
+  .spotlight-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999; /* Top most */
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 25vh;
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .spotlight-overlay.hidden {
+    display: none;
+  }
+
+  .spotlight-container {
+    width: 600px;
+    max-width: 90vw;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: 16px;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.4),
+      0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Dark mode specific styles */
+  @media (prefers-color-scheme: dark) {
+    .spotlight-container {
+      background: rgba(30,30,30,0.65);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+  }
+
+  .spotlight-search-bar {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  
+  .search-icon {
+    width: 24px;
+    height: 24px;
+    color: rgba(0, 0, 0, 0.4);
+    margin-right: 14px;
+  }
+  
+  #spotlight-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    font-size: 22px;
+    color: currentColor;
+    outline: none;
+    font-weight: 300;
+  }
+  
+  #spotlight-input::placeholder {
+    color: rgba(0,0,0,0.3);
+  }
+
+  .spotlight-results {
+    padding: 8px;
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  .spotlight-results.hidden {
+    display: none;
+  }
+
+  .no-results {
+    padding: 16px;
+    text-align: center;
+    color: rgba(0,0,0,0.4);
+  }
+
+  .spotlight-result-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.15s;
+    cursor: default;
+  }
+  
+  .spotlight-result-item:hover, .spotlight-result-item:focus {
+    background: #007AFF; /* Mac Blue */
+    color: white;
+  }
+  
+  .result-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+  }
+  
+  .spotlight-result-item:hover .search-icon, 
+  .spotlight-result-item:hover .result-desc {
+    color: rgba(255,255,255,0.9);
+  }
+  
+  .result-info {
+    flex: 1;
+  }
+  
+  .result-title {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  
+  .result-desc {
+    font-size: 12px;
+    color: rgba(0,0,0,0.5);
+  }
+  
+  .result-enter {
+    font-size: 12px;
+    opacity: 0.5;
+  }
+
+  .spotlight-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 16px;
+    font-size: 10px;
+    background: rgba(0,0,0,0.03);
+    color: rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+  }
+</style>
