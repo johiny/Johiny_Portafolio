@@ -3,21 +3,76 @@ import ChatControl from './ChatControl.jsx';
 import "./ProfileCardStyles.css"
 import { Typewriter } from 'react-simple-typewriter'
 import { faForward, faBackward, faForwardFast  } from '@fortawesome/free-solid-svg-icons';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const ProfileCard = () => {
     const [profileImg, setprofileImg] = useState(johiny_photo)
     const [typeSpeed, setTypeSpeed] = useState(60)
     const [mounted, setMounted] = useState(false);
+    
+    // Drag logic state
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const dragStartPos = useRef({ x: 0, y: 0 });
+    const cardStartPos = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
         // Delay a few seconds before sliding in from the right
         const t = setTimeout(() => setMounted(true), 1200);
         return () => clearTimeout(t);
     }, []);
+
+    // Drag event handlers
+    const handleMouseDown = (e) => {
+        // Prevent drag when clicking on interactive elements
+        if (e.target.closest('.window-controls-react') || 
+            e.target.closest('button') || 
+            e.target.closest('.chat-control-gradient')) {
+            return;
+        }
+        
+        setIsDragging(true);
+        dragStartPos.current = { x: e.clientX, y: e.clientY };
+        cardStartPos.current = { ...position };
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - dragStartPos.current.x;
+            const dy = e.clientY - dragStartPos.current.y;
+            setPosition({
+                x: cardStartPos.current.x + dx,
+                y: cardStartPos.current.y + dy
+            });
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+        };
+
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging]);
     
     return(
-    <div className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col ${mounted ? 'entered' : ''}`}>
+    <div 
+        className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col ${mounted ? 'entered' : ''}`}
+        onMouseDown={handleMouseDown}
+        style={{
+            cursor: isDragging ? 'grabbing' : 'grab',
+            transition: isDragging ? 'none' : undefined,
+            // Only apply transform if dragging or moved to avoid overriding CSS initial animation
+            ...((isDragging || position.x !== 0 || position.y !== 0) ? { transform: `translate(${position.x}px, ${position.y}px)` } : {})
+        }}
+    >
            {/* MacOS Window Controls Wrapper */}
            <div className="window-controls-react">
                <div className="window-control-btn-react window-control-close-react"></div>
@@ -40,7 +95,7 @@ const ProfileCard = () => {
                     </div>
                 </div>
                 <div className="flex flex-col flex-grow w-full">
-                    <h2 id="myDescription" className="text-base md:text-lg gradient-text-profile p-3 rounded-lg backdrop-blur-sm flex-grow">
+                    <h2 id="myDescription" className="text-base profile-desc-text md:text-lg p-3 rounded-lg backdrop-blur-sm flex-grow">
                         <Typewriter
                             delaySpeed={1700}
                             words={["","I began my journey into coding two years ago, but my fascination with computers dates back to my earliest memories. As a child, one of my top Christmas wishes was for a toy computer. Thanks to this passion, I became an early adopter of the internet and learned many skills that have brought immense joy to my life. I have completed a variety of web projects using my preferred stack, and while I do have a favorite one, I am always open to trying new things and making improvements, just as I would switch out ingredients in a sandwich to make it even tastier."]}

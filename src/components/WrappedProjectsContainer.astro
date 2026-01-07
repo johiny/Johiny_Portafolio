@@ -80,8 +80,8 @@ function bentoSize(index: number) {
       {(() => {
         // Precomputar tamaños deterministas para consistencia entre duplicados
         const sizes = projects.map((_, i) => bentoSize(i));
-        // Duplicar los proyectos para crear el efecto infinito
-        const duplicatedProjects = [...projects, ...projects];
+        // Duplicar los proyectos (4 sets) para crear el efecto infinito con reciclaje visual
+        const duplicatedProjects = [...projects, ...projects, ...projects, ...projects];
         
         return duplicatedProjects.map((project, index) => {
           const originalIndex = index % projects.length;
@@ -178,8 +178,7 @@ function bentoSize(index: number) {
     }
     
     let currentBatch = 0;
-    let isLoading = false;
-    const BATCH_SIZE = uniqueProjects.length;
+    // Removed loadMoreCards logic variables
     let allProjectCards = [...uniqueProjects, ...uniqueProjects];
 
     function updateRestoreButton() {
@@ -210,109 +209,9 @@ function bentoSize(index: number) {
       if (idx !== -1) closedProjects.splice(idx, 1);
       updateRestoreButton();
     }
-
-    function createProjectCard(project, index, isDuplicate = false) {
-      const originalIndex = index % uniqueProjects.length;
-      const sizes = [
-        'w-[18rem] h-[18rem]', 'w-[22rem] h-[18rem]', 'w-[18rem] h-[24rem]', 'w-[26rem] h-[20rem]',
-        'w-[20rem] h-[20rem]', 'w-[24rem] h-[26rem]', 'w-[18rem] h-[22rem]', 'w-[22rem] h-[24rem]'
-      ];
-      
-      const projectIcons = [
-        '<svg class="w-12 h-12 gradient-icon-1" fill="none" stroke="#ff9a9e" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-2" fill="none" stroke="#fad0c4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-3" fill="none" stroke="#a1c4fd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-4" fill="none" stroke="#c2e9fb" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-1" fill="none" stroke="#ff9a9e" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-2" fill="none" stroke="#fad0c4" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-3" fill="none" stroke="#a1c4fd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>',
-        '<svg class="w-12 h-12 gradient-icon-4" fill="none" stroke="#c2e9fb" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>'
-      ];
-
-      const gradientTitleClasses = [
-        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4',
-        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4'
-      ];
-
-      const gradientDescClasses = [
-        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4',
-        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4'
-      ];
-
-      // Use the Custom Element
-      const cardElement = document.createElement('draggable-project-card');
-      const entryClass = isDuplicate ? 'dynamic-entry' : 'preload';
-      
-      // Set the attributes expected by DraggableProjectCard logic
-      cardElement.className = `project-item ${entryClass} ${sizes[originalIndex]} shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-105`;
-      cardElement.setAttribute('data-index', originalIndex);
-      cardElement.setAttribute('data-duplicate', isDuplicate ? 'true' : 'false');
-      // Pass the link as data-url, component logic handles double click open
-      cardElement.setAttribute('data-url', project.url);
-
-      // Recreate internal DOM structure
-      cardElement.innerHTML = `
-        <div class="project-card-visual glass-card group w-full h-full relative rounded-3xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing">
-            <!-- Window Controls Bar -->
-            <div class="window-controls-bar absolute top-0 left-0 w-full h-12 z-20 flex items-center px-4">
-                <div class="window-controls flex space-x-2 transition-all duration-300 pointer-events-auto">
-                    <div class="window-control-btn window-control-close"></div>
-                    <div class="window-control-btn window-control-minimize"></div>
-                    <div class="window-control-btn window-control-maximize"></div>
-                </div>
-            </div>
-            
-            <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full pt-12 pointer-events-none">
-              <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4 pointer-events-auto transition-transform duration-300">
-                <div>${projectIcons[originalIndex % projectIcons.length]}</div>
-              </div>
-              <h3 class="project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]} pointer-events-auto">${project.title}</h3>
-              <p class="project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]} pointer-events-auto">${project.description}</p>
-            </div>
-        </div>
-      `;
-
-      return cardElement;
-    }
-
-    function loadMoreCards() {
-      if (isLoading) return;
-      isLoading = true;
-      requestAnimationFrame(() => {
-        const newCards = [];
-        for (let i = 0; i < BATCH_SIZE; i++) {
-          const projectIndex = i % uniqueProjects.length;
-          const newCard = createProjectCard(uniqueProjects[projectIndex], projectIndex, true);
-          newCards.push(newCard);
-          allProjectCards.push(uniqueProjects[projectIndex]);
-        }
-        
-        newCards.forEach((card, index) => {
-          track.appendChild(card);
-          const totalCards = track.querySelectorAll('.project-item').length;
-          const cardPosition = totalCards - newCards.length + index;
-          applyMasonryStyles(card, cardPosition);
-          setupCardEventListeners(card);
-          requestAnimationFrame(() => { card.classList.add('loaded'); });
-        });
-        
-        currentBatch++;
-        isLoading = false;
-      });
-    }
-
-    function applyMasonryStyles(card, position) {
-      card.style.alignSelf = '';
-      card.style.marginTop = '';
-      const remainder = position % 5;
-      switch(remainder) {
-        case 0: card.style.alignSelf = 'flex-start'; break;
-        case 1: card.style.alignSelf = 'center'; break;
-        case 2: card.style.alignSelf = 'flex-end'; break;
-        case 3: card.style.alignSelf = 'flex-start'; card.style.marginTop = '2rem'; break;
-        case 4: card.style.alignSelf = 'center'; card.style.marginTop = '1rem'; break;
-      }
-    }
+    
+    // Original createProjectCard and loadMoreCards removed.
+    // The infinite scroll now relies on the initial quadrupled duplication and scroll-reset logic.
 
     // Attach external listeners (sound, restore tracking)
     function setupCardEventListeners(card) {
@@ -383,7 +282,46 @@ function bentoSize(index: number) {
     let lastTimestamp = 0;
     const SCROLL_SPEED_PPS = 60; 
 
+    // Compute size of one complete set of projects for snap-back logic
+    let singleSetPixelWidth = 0;
+    setTimeout(() => {
+        const setSize = uniqueProjects.length;
+        const currentCards = Array.from(track.querySelectorAll('.project-item'));
+        if (currentCards.length > setSize) {
+            const firstCard = currentCards[0];
+            const startOfSecondSetCard = currentCards[setSize];
+            if (firstCard && startOfSecondSetCard) {
+                singleSetPixelWidth = startOfSecondSetCard.offsetLeft - firstCard.offsetLeft;
+            }
+        }
+    }, 500);
+
+    function checkSnap() {
+        if (!singleSetPixelWidth || singleSetPixelWidth <= 0) return;
+        
+        if (container.scrollLeft >= singleSetPixelWidth) {
+            // Loop forward: Snap back to start
+            const diff = singleSetPixelWidth;
+            container.scrollLeft -= diff;
+            preciseScrollLeft -= diff;
+            
+            // Adjust drag context if active to prevent visual jump
+            if (isDragging) {
+              startX -= diff;
+              scrollLeft -= diff;
+            }
+        } else if (container.scrollLeft <= 0) {
+           // Allow dragging backwards to loop
+           // Check if we have buffer to the left?
+           // With 4 sets, we start at 0. So physically logic is [Set1][Set2][Set3][Set4]. 
+           // If we are at 0, we can't scroll left.
+           // Ideally we should start at Set 2 (scrollLeft = singleSetPixelWidth).
+        }
+    }
+
     function autoScroll(timestamp) {
+      checkSnap();
+      
       if (!lastTimestamp || isPaused || isDragging) lastTimestamp = timestamp;
       if (!isPaused && !isDragging) {
         const deltaTime = timestamp - lastTimestamp;
@@ -392,9 +330,8 @@ function bentoSize(index: number) {
         if (Math.abs(container.scrollLeft - preciseScrollLeft) > 5) preciseScrollLeft = container.scrollLeft;
         preciseScrollLeft += pixelsToMove;
         container.scrollLeft = preciseScrollLeft;
-
-        const maxScroll = container.scrollWidth - container.clientWidth;
-        if (container.scrollLeft >= maxScroll * 0.8 && !isLoading) loadMoreCards();
+        
+        // Removed dynamic loading check
       } else {
          preciseScrollLeft = container.scrollLeft;
       }
