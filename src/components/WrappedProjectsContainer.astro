@@ -165,6 +165,42 @@ function bentoSize(index: number) {
 
     // Array que rastrea los elementos que han recibido la clase 'closed-state'
     const closedProjects = [];
+
+    // --- Audio System (Efectos de sonido UI) ---
+    let audioContext = null;
+
+    function playHoverSound() {
+      try {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+           audioContext.resume().catch(() => {});
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Sonido "Glass Pop" sutil y elegante
+        oscillator.type = 'sine';
+        // Tono puro y limpio que sube levemente
+        oscillator.frequency.setValueAtTime(500, audioContext.currentTime); 
+        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05); 
+        
+        // Envolvente de volumen muy suave (fade in/out rápido)
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.015, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
+        
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {
+        // Fallback silencioso si el audio no está permitido
+      }
+    }
     
     // Estado para el scroll infinito dinámico
     let currentBatch = 0;
@@ -284,10 +320,9 @@ function bentoSize(index: number) {
       if (isLoading) return;
       
       isLoading = true;
-      console.log(`Cargando batch ${currentBatch + 1}...`);
+      // console.log(`Cargando batch ${currentBatch + 1}...`);
       
-      // Simular un pequeño delay de carga (opcional)
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         const newCards = [];
         
         // Agregar una nueva tanda de proyectos (rotando a través de los proyectos originales)
@@ -314,17 +349,17 @@ function bentoSize(index: number) {
           setupCardEventListeners(card);
           
           // Animar la entrada de la nueva tarjeta
-          setTimeout(() => {
+          requestAnimationFrame(() => {
             card.classList.add('loaded');
             // Volver a aplicar estilos después de la animación para asegurar que se mantengan
             forceGradientStyles(card, index);
-          }, index * 50); // Stagger la animación
+          });
         });
         
         currentBatch++;
         isLoading = false;
-        console.log(`Batch ${currentBatch} cargado. Total cards: ${allProjectCards.length}`);
-      }, 100); // Small delay para simular carga
+        // console.log(`Batch ${currentBatch} cargado. Total cards: ${allProjectCards.length}`);
+      });
     }
 
     // Función para aplicar estilos masonry a una tarjeta específica
@@ -382,10 +417,10 @@ function bentoSize(index: number) {
         
         // Aplicar estilos inline como fallback para asegurar que se vean
         const titleStyles = {
-          0: 'linear-gradient(45deg, #ff9a9e, #ff6b6b)',
-          1: 'linear-gradient(45deg, #fad0c4, #ffc048)',
-          2: 'linear-gradient(45deg, #a1c4fd, #667eea)',
-          3: 'linear-gradient(45deg, #c2e9fb, #764ba2)'
+          0: 'linear-gradient(45deg, #e11d48, #f43f5e)',
+          1: 'linear-gradient(45deg, #ea580c, #f59e0b)',
+          2: 'linear-gradient(45deg, #2563eb, #3b82f6)',
+          3: 'linear-gradient(45deg, #0284c7, #0891b2)'
         };
         
         const styleIndex = projectIndex % 4;
@@ -393,17 +428,10 @@ function bentoSize(index: number) {
         title.style.webkitBackgroundClip = 'text';
         title.style.backgroundClip = 'text';
         title.style.webkitTextFillColor = 'transparent';
-  title.style.fontWeight = '500';
+        title.style.fontWeight = '700';
         
         // Text-shadow específico para cada color
-        const titleShadows = {
-          0: '0 2px 4px rgba(255, 154, 158, 0.5), 0 4px 8px rgba(255, 107, 107, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Rosa coral
-          1: '0 2px 4px rgba(250, 208, 196, 0.5), 0 4px 8px rgba(255, 192, 72, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Melocotón
-          2: '0 2px 4px rgba(161, 196, 253, 0.5), 0 4px 8px rgba(102, 126, 234, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)', // Azul lavanda
-          3: '0 2px 4px rgba(194, 233, 251, 0.5), 0 4px 8px rgba(118, 75, 162, 0.3), 0 1px 2px rgba(0, 0, 0, 0.1)' // Azul cielo
-        };
-        
-        title.style.textShadow = titleShadows[styleIndex];
+        title.style.textShadow = '0 1px 2px rgba(0,0,0,0.1)';
       }
       
       if (desc) {
@@ -412,30 +440,14 @@ function bentoSize(index: number) {
         // Agregar la clase correcta
         desc.classList.add(gradientDescClasses[projectIndex % gradientDescClasses.length]);
         
-        // Aplicar estilos inline como fallback
-        const descStyles = {
-          0: 'linear-gradient(45deg, #ff9a9e, #ff7a85)',
-          1: 'linear-gradient(45deg, #fad0c4, #f2b366)',
-          2: 'linear-gradient(45deg, #a1c4fd, #7b9cf0)',
-          3: 'linear-gradient(45deg, #c2e9fb, #9ec8e8)'
-        };
-        
-        const styleIndex = projectIndex % 4;
-        desc.style.background = descStyles[styleIndex];
-        desc.style.webkitBackgroundClip = 'text';
-        desc.style.backgroundClip = 'text';
-        desc.style.webkitTextFillColor = 'transparent';
-  desc.style.fontWeight = '500';
-        
-        // Text-shadow específico para cada color de descripción
-        const descShadows = {
-          0: '0 2px 4px rgba(255, 154, 158, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Rosa coral suave
-          1: '0 2px 4px rgba(250, 208, 196, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Melocotón suave
-          2: '0 2px 4px rgba(161, 196, 253, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)', // Azul lavanda suave
-          3: '0 2px 4px rgba(194, 233, 251, 0.4), 0 1px 2px rgba(0, 0, 0, 0.08)' // Azul cielo suave
-        };
-        
-        desc.style.textShadow = descShadows[styleIndex];
+        // Reiniciar estilos inline para garantizar texto sólido
+        desc.style.background = 'none';
+        desc.style.webkitBackgroundClip = 'border-box';
+        desc.style.backgroundClip = 'border-box';
+        desc.style.webkitTextFillColor = 'initial';
+        desc.style.color = 'rgba(30, 41, 59, 0.95)'; // Slate 800
+        desc.style.fontWeight = '500';
+        desc.style.textShadow = '0 1px 0 rgba(255, 255, 255, 0.8)';
       }
       
       console.log(`Estilos de gradiente aplicados a tarjeta ${projectIndex}`);
@@ -446,7 +458,8 @@ function bentoSize(index: number) {
       // Configurar hover para pausar scroll
       card.addEventListener('mouseenter', () => {
         isPaused = true;
-        console.log('Auto-scroll pausado (hover sobre nueva tarjeta) — data-index:', card.getAttribute('data-index'));
+        playHoverSound(); // Efecto de sonido
+        // console.log('Auto-scroll pausado (hover sobre nueva tarjeta) — data-index:', card.getAttribute('data-index'));
       });
 
       card.addEventListener('mouseleave', () => {
@@ -472,6 +485,16 @@ function bentoSize(index: number) {
           }
         });
       });
+
+      // Efecto Spotlight (Seguimiento del mouse)
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        // Actualizar variables CSS para la posición del brillo
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
     }
 
     let isPaused = false;
@@ -480,11 +503,30 @@ function bentoSize(index: number) {
     let startX = 0;
     let scrollLeft = 0;
     let wheelTimeout = null; // Para pausar temporalmente el auto-scroll
+    let preciseScrollLeft = 0;
+    let lastTimestamp = 0;
+    const SCROLL_SPEED_PPS = 60; // Pixels per second
 
     // Scroll automático con carga dinámica infinita
-    function autoScroll() {
+    function autoScroll(timestamp) {
+      if (!lastTimestamp || isPaused || isDragging) {
+        lastTimestamp = timestamp;
+      }
+      
       if (!isPaused && !isDragging) {
-        container.scrollLeft += 1;
+        const deltaTime = timestamp - lastTimestamp;
+        lastTimestamp = timestamp;
+        
+        // Use delta time for smooth speed regardless of frame rate
+        const pixelsToMove = (SCROLL_SPEED_PPS * deltaTime) / 1000;
+        
+        // If container.scrollLeft changed externally (e.g. initial load or constraints), sync it
+        if (Math.abs(container.scrollLeft - preciseScrollLeft) > 5) {
+             preciseScrollLeft = container.scrollLeft;
+        }
+
+        preciseScrollLeft += pixelsToMove;
+        container.scrollLeft = preciseScrollLeft;
 
         // Verificar si estamos cerca del final y necesitamos cargar más tarjetas
         const scrollPosition = container.scrollLeft;
@@ -492,9 +534,12 @@ function bentoSize(index: number) {
         const threshold = maxScroll * 0.8; // Cargar más cuando estemos al 80% del final
         
         if (scrollPosition >= threshold && !isLoading) {
-          console.log('Cerca del final, cargando más tarjetas...');
+          // console.log('Cerca del final, cargando más tarjetas...');
           loadMoreCards();
         }
+      } else {
+         // Sync when paused so we resume smoothly
+         preciseScrollLeft = container.scrollLeft;
       }
       animationId = requestAnimationFrame(autoScroll);
     }
@@ -502,7 +547,9 @@ function bentoSize(index: number) {
     // Iniciar inmediatamente después de que el DOM esté listo
     setTimeout(() => {
       console.log('Iniciando scroll automático...');
-      autoScroll();
+      // Inicializar posición precisa para evitar saltos o NaN
+      preciseScrollLeft = container.scrollLeft;
+      requestAnimationFrame(autoScroll);
     }, 100);
 
     // Animación de entrada para las project cards: las tarjetas se renderizan
@@ -810,7 +857,7 @@ function bentoSize(index: number) {
     cursor: grab; 
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
     user-select: none; /* Evita selección de texto durante el drag */
@@ -956,28 +1003,54 @@ function bentoSize(index: number) {
 
   /* Estilo de tarjeta glass mejorado - Mayor contraste y legibilidad */
   .glass-card {
-    background: rgba(255, 255, 255, 0.35); /* Más opaco para mejor contraste */
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255, 255, 255, 0.4); /* Borde más visible */
-  font-family: 'Poppins', sans-serif;
+    background: rgba(255, 255, 255, 0.70); /* MÁS OPACO PARA MEJOR CONTRASTE */
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    font-family: 'Poppins', sans-serif;
     box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.15), /* Sombras más pronunciadas */
-      0 6px 20px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5), /* Highlight más fuerte */
-      inset 0 -1px 0 rgba(0, 0, 0, 0.1); /* Borde inferior sutil */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      0 12px 40px rgba(0, 0, 0, 0.08), 
+      0 4px 12px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    
+    /* Variables para el efecto spotlight */
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Efecto Spotlight (Brillo que sigue al mouse) */
+  .glass-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      600px circle at var(--mouse-x) var(--mouse-y), 
+      rgba(255, 255, 255, 0.8),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .glass-card:hover::after {
+    opacity: 1;
   }
   
   .glass-card:hover {
-    background: rgba(255, 255, 255, 0.45); /* Aún más opaco en hover */
-    transform: translateY(-8px) scale(1.02);
+    background: rgba(255, 255, 255, 0.85); /* Casi sólido en hover para máxima legibilidad */
+    transform: translateY(-6px) scale(1.01);
     box-shadow: 
-      0 20px 60px rgba(0, 0, 0, 0.2), /* Sombras más dramáticas */
-      0 10px 30px rgba(0, 0, 0, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.6); /* Borde más brillante en hover */
+      0 20px 50px rgba(0, 0, 0, 0.12),
+      0 8px 20px rgba(0, 0, 0, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.9);
   }
   
   /* Efecto hover para el icono */
@@ -1137,110 +1210,60 @@ function bentoSize(index: number) {
     filter: drop-shadow(0 4px 8px rgba(194, 233, 251, 0.4));
   }
 
-  /* Estilos de gradientes macOS para títulos - Legibilidad mejorada */
+  /* Estilos de gradientes macOS para títulos - Colores más saturados y oscuros */
   .gradient-text-title-1 {
-    background: linear-gradient(45deg, #ff9a9e, #ff6b6b);
+    background: linear-gradient(45deg, #e11d48, #f43f5e); /* Rosa Oscuro/Vibrante */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(255, 154, 158, 0.5),
-      0 4px 8px rgba(255, 107, 107, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.1); /* Sombra negra sutil para contraste */
-    letter-spacing: 0.03em;
-    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(225, 29, 72, 0.2);
+    letter-spacing: 0.01em;
+    font-weight: 700;
   }
   
   .gradient-text-title-2 {
-    background: linear-gradient(45deg, #fad0c4, #ffc048);
+    background: linear-gradient(45deg, #ea580c, #f59e0b); /* Naranja Oscuro/Ambar */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(250, 208, 196, 0.5),
-      0 4px 8px rgba(255, 192, 72, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.1);
-    letter-spacing: 0.03em;
-    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(234, 88, 12, 0.2);
+    letter-spacing: 0.01em;
+    font-weight: 700;
   }
   
   .gradient-text-title-3 {
-    background: linear-gradient(45deg, #a1c4fd, #667eea);
+    background: linear-gradient(45deg, #2563eb, #3b82f6); /* Azul Real Oscuro */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(161, 196, 253, 0.5),
-      0 4px 8px rgba(102, 126, 234, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.1);
-    letter-spacing: 0.03em;
-    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    letter-spacing: 0.01em;
+    font-weight: 700;
   }
   
   .gradient-text-title-4 {
-    background: linear-gradient(45deg, #0019be, #764ba2);
+    background: linear-gradient(45deg, #0284c7, #0891b2); /* Cyan/Teal Oscuro */
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(194, 233, 251, 0.5),
-      0 4px 8px rgba(118, 75, 162, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.1);
-    letter-spacing: 0.03em;
-    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
+    letter-spacing: 0.01em;
+    font-weight: 700;
   }
 
-  /* Estilos de gradientes macOS para descripciones - Legibilidad mejorada */
-  .gradient-text-desc-1 {
-    background: linear-gradient(45deg, #ff9a9e, #ff7a85);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(255, 154, 158, 0.4),
-      0 1px 2px rgba(0, 0, 0, 0.08); /* Sombra negra sutil */
-    transition: all 0.3s ease;
-  }
-  
-  .gradient-text-desc-2 {
-    background: linear-gradient(45deg, #fad0c4, #f2b366);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(250, 208, 196, 0.4),
-      0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-  }
-  
-  .gradient-text-desc-3 {
-    background: linear-gradient(45deg, #a1c4fd, #7b9cf0);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(161, 196, 253, 0.4),
-      0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-  }
-  
+  /* Descripciones SÍLIDAS y OSCURAS para máxima legibilidad */
+  .gradient-text-desc-1,
+  .gradient-text-desc-2,
+  .gradient-text-desc-3,
   .gradient-text-desc-4 {
-    background: linear-gradient(45deg, #075274, #9ec8e8);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  /* color/gradient only - font size/family are in .project-text-base */
-    text-shadow: 
-      0 2px 4px rgba(194, 233, 251, 0.4),
-      0 1px 2px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    background: none !important;
+    -webkit-background-clip: border-box !important;
+    background-clip: border-box !important;
+    -webkit-text-fill-color: initial !important;
+    color: rgba(30, 41, 59, 0.95) !important; /* Gris oscuro casi negro (Slate 800) */
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); /* Highlight blanco sutil */
+    font-weight: 500 !important;
+    opacity: 0.9;
   }
 
   /* Efectos hover para textos - Más oscuro para mejor legibilidad */
