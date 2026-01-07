@@ -1,7 +1,7 @@
 import johiny_photo from '../media/johan_laravel.jpg'
 import ChatControl from './ChatControl.jsx';
 import "./ProfileCardStyles.css"
-import { Typewriter } from 'react-simple-typewriter'
+import Typewriter from 'typewriter-effect';
 import { faForward, faBackward, faForwardFast  } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from 'react';
 
@@ -10,7 +10,26 @@ const ProfileCard = () => {
     const [typeSpeed, setTypeSpeed] = useState(60)
     const [mounted, setMounted] = useState(false);
     
-    // Drag logic state
+    // Typewriter ref to control speed dynamically
+    const typewriterRef = useRef(null);
+
+    // Effect to update speed when state changes
+    useEffect(() => {
+        if (typewriterRef.current) {
+             // typewriter-effect doesn't allow changing delay of an actively typing string easily
+             // without interrupting, but we can try to update the reference if the library exposes it.
+             // However, for simplicity and stability compatible with the library's architecture:
+             // The options.delay is read on creation.
+             // We might need to accept that speed change applies on reload or next string,
+             // or we just rely on initial render.
+             // Given the library difference, complex speed control might require a re-render key
+             // but that resets the text. Let's keep the controls connected for now.
+             
+             // The chat controls updated 'typeSpeed' state.
+             // We can force re-render by using typeSpeed as key, but that restarts typing.
+             // Let's try to find a middle ground or accept restart on speed change which is logical.
+        }
+    }, [typeSpeed]);
     const [position, setPosition] = useState({ x: 0, y: 0 });
     const [isDragging, setIsDragging] = useState(false);
     const dragStartPos = useRef({ x: 0, y: 0 });
@@ -97,11 +116,18 @@ const ProfileCard = () => {
                 <div className="flex flex-col flex-grow w-full">
                     <h2 id="myDescription" className="text-base profile-desc-text md:text-lg p-3 rounded-lg backdrop-blur-sm flex-grow">
                         <Typewriter
-                            delaySpeed={1700}
-                            words={["","I grew up with the internet, learning its language before I could master my own. Today, with five years of professional experience, I see every line of code as an opportunity to simplify the world. I don’t just write code; I design transformative experiences that break barriers. By constantly refining my craft and evolving my tech stack, I aim to build seamless, intuitive tools that return to humanity its most precious gift—time—empowering people to dream bigger and move faster."]}
-                            typeSpeed={typeSpeed}
-                            cursor
-                            cursorColor="#ff9a9e"
+                            key={typeSpeed} // Restart typing if speed changes (simplest way to apply new speed globally)
+                            options={{
+                                delay: typeSpeed,
+                                cursor: '|',
+                                cursorClassName: 'text-[#ff9a9e]'
+                            }}
+                            onInit={(typewriter) => {
+                                typewriterRef.current = typewriter;
+                                typewriter
+                                    .typeString('I grew up with the internet, learning its language before I could master my own. Today, with five years of professional experience, I see every line of code as an <strong style="color: #ff9a9e;">opportunity</strong> to simplify the world. I don’t just write code; I design <span style="background: linear-gradient(135deg, #ff9a9e, #a1c4fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">transformative experiences</span> that break barriers. By constantly refining my craft and evolving my tech stack, I aim to build seamless, intuitive tools that return to humanity its most precious gift—<strong style="color: #a1c4fd;">time</strong>—empowering people to dream bigger and move faster.')
+                                    .start();
+                            }}
                         />
                     </h2>
                     <div className="flex justify-center mt-14 space-x-2">
