@@ -1,0 +1,344 @@
+---
+interface Props {
+  project: {
+    title: string;
+    description: string;
+    url: string;
+  };
+  index: number;
+  isDuplicate?: boolean;
+  class?: string;
+  iconSvg: string;
+  gradientTitleClass: string;
+  gradientDescClass: string;
+}
+
+const { 
+  project, 
+  index, 
+  isDuplicate = false, 
+  class: className,
+  iconSvg,
+  gradientTitleClass,
+  gradientDescClass
+} = Astro.props;
+---
+
+<draggable-project-card
+  class={`project-item ${className || ''}`}
+  data-index={index}
+  data-duplicate={isDuplicate ? 'true' : 'false'}
+  data-url={project.url}
+>
+  <div class="project-card-visual glass-card group w-full h-full relative rounded-3xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing">
+    <!-- Window Controls Bar (previously drag handle) -->
+    <div class="window-controls-bar absolute top-0 left-0 w-full h-12 z-20 flex items-center px-4">
+      <!-- Window Controls -->
+      <div class="window-controls flex space-x-2 transition-all duration-300 pointer-events-auto">
+        <div class="window-control-btn window-control-close"></div>
+        <div class="window-control-btn window-control-minimize"></div>
+        <div class="window-control-btn window-control-maximize"></div>
+      </div>
+    </div>
+    
+    <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full pt-12 pointer-events-none">
+      <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4 pointer-events-auto transition-transform duration-300">
+        <Fragment set:html={iconSvg} />
+      </div>
+      <h3 class={`project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClass} pointer-events-auto`}>
+        {project.title}
+      </h3>
+      <p class={`project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClass} pointer-events-auto`}>
+        {project.description}
+      </p>
+    </div>
+  </div>
+</draggable-project-card>
+
+<style is:global>
+  /* Global styles to ensure dynamic cards (created via JS) pick up the styles */
+  
+  /* Base styles for the custom element container */
+  draggable-project-card {
+    display: block;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    will-change: transform;
+  }
+
+  /* Visual styles */
+  .project-card-visual {
+    /* Glass Effect */
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(40px) saturate(150%);
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.08), 
+      0 4px 12px rgba(0, 0, 0, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    
+    /* Variables for spotlight */
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+  }
+
+  .project-card-visual:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 
+      0 20px 50px rgba(0, 0, 0, 0.12),
+      0 8px 20px rgba(0, 0, 0, 0.06),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Spotlight Effect */
+  .project-card-visual::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      600px circle at var(--mouse-x) var(--mouse-y), 
+      rgba(255, 255, 255, 0.8),
+      transparent 40%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .project-card-visual:hover::after {
+    opacity: 1;
+  }
+
+  /* Window Controls */
+  .window-control-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    position: relative;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+  
+  .window-control-close { background: #ff5f57; background: linear-gradient(135deg, #ff6058 0%, #ff4d4d 100%); }
+  .window-control-minimize { background: #ffbd2e; background: linear-gradient(135deg, #ffca2c 0%, #ffb000 100%); }
+  .window-control-maximize { background: #28ca42; background: linear-gradient(135deg, #32d74b 0%, #28a745 100%); }
+
+  .window-controls {
+    padding: 2px 4px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+  }
+
+  .window-control-btn:hover { transform: scale(1.1); }
+  
+  .window-control-close:hover::after { content: '✕'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #8B1538; font-size: 8px; font-weight: bold; }
+  .window-control-minimize:hover::after { content: '−'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #B45309; font-size: 10px; font-weight: bold; }
+  .window-control-maximize:hover::after { content: '+'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #15803D; font-size: 10px; font-weight: bold; }
+
+  /* Drag Handle */
+  .drag-handle:active {
+    cursor: grabbing;
+  }
+
+  /* Typography */
+  .project-title, .project-desc {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: rgba(0,0,0,0.85);
+  }
+  
+  .project-title { font-weight: 700; }
+  .project-desc { font-weight: 500; color: rgba(0,0,0,0.55); }
+
+  /* Icons */
+  .project-card-visual:hover .project-icon {
+    transform: scale(1.15) rotate(8deg);
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.8), rgba(245, 243, 255, 0.8));
+    border-color: white;
+  }
+
+  /* Gradient Text Classes */
+  .gradient-text-title-1 { background: linear-gradient(45deg, #e11d48, #f43f5e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .gradient-text-title-2 { background: linear-gradient(45deg, #ea580c, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .gradient-text-title-3 { background: linear-gradient(45deg, #2563eb, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .gradient-text-title-4 { background: linear-gradient(45deg, #0284c7, #0891b2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .gradient-text-desc-1, .gradient-text-desc-2, .gradient-text-desc-3, .gradient-text-desc-4 {
+    background: none !important;
+    -webkit-text-fill-color: initial !important;
+    color: rgba(30, 41, 59, 0.95) !important;
+  }
+
+  /* Icon Gradients */
+  .project-card-visual:hover svg.gradient-icon-1 { stroke: #ff6b6b !important; filter: drop-shadow(0 4px 8px rgba(255, 154, 158, 0.4)); }
+  .project-card-visual:hover svg.gradient-icon-2 { stroke: #ffc048 !important; filter: drop-shadow(0 4px 8px rgba(250, 208, 196, 0.4)); }
+  .project-card-visual:hover svg.gradient-icon-3 { stroke: #667eea !important; filter: drop-shadow(0 4px 8px rgba(161, 196, 253, 0.4)); }
+  .project-card-visual:hover svg.gradient-icon-4 { stroke: #764ba2 !important; filter: drop-shadow(0 4px 8px rgba(194, 233, 251, 0.4)); }
+
+  /* Animations for Window Controls */
+  draggable-project-card.closing { animation: macosClose 0.6s forwards; z-index: 1000; }
+  draggable-project-card.minimizing { animation: macosMinimize 0.6s forwards; z-index: 1000; }
+  draggable-project-card.maximizing { animation: macosMaximize 0.4s forwards; z-index: 1000; }
+  
+  draggable-project-card.closed-state { transform: translateY(-1000px) scale(0.8); opacity: 0; pointer-events: none; }
+  draggable-project-card.minimized-state { transform: scale(0.15) !important; opacity: 0.7 !important; z-index: 1000; }
+  draggable-project-card.maximized-state { transform: scale(1.8) !important; opacity: 1 !important; z-index: 1000; }
+
+  @keyframes macosClose { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.8) translateY(-1000px); } }
+  @keyframes macosMinimize { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.15); opacity: 0.7; } }
+  @keyframes macosMaximize { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 1; } }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+     .project-title, .project-desc { color: rgba(255,255,255,0.92); }
+     .project-desc { color: rgba(255,255,255,0.75); }
+  }
+</style>
+
+<script>
+  class DraggableProjectCard extends HTMLElement {
+    constructor() {
+      super();
+      this.isDragging = false;
+      this.startX = 0;
+      this.startY = 0;
+      this.initialTranslateX = 0;
+      this.initialTranslateY = 0;
+      this.currentTranslateX = 0;
+      this.currentTranslateY = 0;
+      this.hasMoved = false;
+      
+      this.boundOnDragStart = this.onDragStart.bind(this);
+      this.boundOnDrag = this.onDrag.bind(this);
+      this.boundOnDragEnd = this.onDragEnd.bind(this);
+      this.boundOnClick = this.onClick.bind(this);
+      this.boundOnMouseMove = this.onMouseMove.bind(this);
+    }
+
+    connectedCallback() {
+      // Attach drag listeners to the entire component
+      this.addEventListener('mousedown', this.boundOnDragStart);
+      this.addEventListener('touchstart', this.boundOnDragStart, { passive: false });
+
+      this.addEventListener('mousemove', this.boundOnMouseMove);
+      this.addEventListener('click', this.boundOnClick);
+    }
+
+    disconnectedCallback() {
+      this.removeEventListener('mousedown', this.boundOnDragStart);
+      this.removeEventListener('touchstart', this.boundOnDragStart);
+      
+      this.removeEventListener('mousemove', this.boundOnMouseMove);
+      this.removeEventListener('click', this.boundOnClick);
+    }
+
+    onMouseMove(e) {
+      if (this.isDragging) return;
+      // @ts-ignore
+      const visual = this.querySelector('.project-card-visual');
+      if (!visual) return;
+
+      const rect = visual.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // @ts-ignore
+      visual.style.setProperty('--mouse-x', `${x}px`);
+      // @ts-ignore
+      visual.style.setProperty('--mouse-y', `${y}px`);
+    }
+
+    onDragStart(e) {
+      // Check if it's a mouse event and if the button is not the primary one
+      if (e.type === 'mousedown' && e.button !== 0) return;
+      
+      // Ignore if clicking window controls
+      // @ts-ignore
+      if (e.target.closest('.window-control-btn')) return;
+
+      this.isDragging = true;
+      this.hasMoved = false;
+      
+      const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+      const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
+
+      this.startX = clientX;
+      this.startY = clientY;
+      
+      this.initialTranslateX = this.currentTranslateX;
+      this.initialTranslateY = this.currentTranslateY;
+
+      this.style.zIndex = '1000';
+      
+      if (e.type === 'mousedown') {
+        document.addEventListener('mousemove', this.boundOnDrag);
+        document.addEventListener('mouseup', this.boundOnDragEnd);
+      } else {
+        document.addEventListener('touchmove', this.boundOnDrag, { passive: false });
+        document.addEventListener('touchend', this.boundOnDragEnd);
+      }
+      
+      if (e.cancelable) e.preventDefault(); 
+    }
+
+    onDrag(e) {
+      if (!this.isDragging) return;
+      if (e.cancelable) e.preventDefault();
+
+      const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+      const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+      const deltaX = clientX - this.startX;
+      const deltaY = clientY - this.startY;
+
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+        this.hasMoved = true;
+      }
+
+      this.currentTranslateX = this.initialTranslateX + deltaX;
+      this.currentTranslateY = this.initialTranslateY + deltaY;
+
+      this.style.transform = `translate(${this.currentTranslateX}px, ${this.currentTranslateY}px)`;
+    }
+
+    onDragEnd() {
+      this.isDragging = false;
+      this.style.zIndex = '';
+      
+      document.removeEventListener('mousemove', this.boundOnDrag);
+      document.removeEventListener('mouseup', this.boundOnDragEnd);
+      document.removeEventListener('touchmove', this.boundOnDrag);
+      document.removeEventListener('touchend', this.boundOnDragEnd);
+    }
+
+    onClick(e) {
+      if (this.hasMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.hasMoved = false;
+        return;
+      }
+
+      // @ts-ignore
+      if (e.target.closest('.window-control-btn')) return;
+
+      const url = this.getAttribute('data-url');
+      if (url && url !== '#') {
+        window.open(url, '_blank');
+      }
+    }
+  }
+
+  if (!customElements.get('draggable-project-card')) {
+    customElements.define('draggable-project-card', DraggableProjectCard);
+  }
+</script>

@@ -1,5 +1,7 @@
 ---
 // src/components/WrappedProjectsContainer.astro
+import DraggableProjectCard from './DraggableProjectCard.astro';
+
 interface Props {
   projects: Array<{ 
     id: number; 
@@ -84,29 +86,15 @@ function bentoSize(index: number) {
         return duplicatedProjects.map((project, index) => {
           const originalIndex = index % projects.length;
           return (
-            <a 
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class={`project-item preload glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`}
-              data-index={originalIndex}
-              data-duplicate={index >= projects.length ? 'true' : 'false'}
-            >
-              <!-- Window Controls (macOS style) -->
-              <div class="window-controls absolute top-3 left-3 flex space-x-2 z-10 transition-all duration-300">
-                <div class="window-control-btn window-control-close"></div>
-                <div class="window-control-btn window-control-minimize"></div>
-                <div class="window-control-btn window-control-maximize"></div>
-              </div>
-              
-              <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full">
-                <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
-                  <div set:html={projectIcons[originalIndex % projectIcons.length]} />
-                </div>
-                <h3 class={`project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}`}>{project.title}</h3>
-                <p class={`project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}`}>{project.description}</p>
-              </div>
-            </a>
+            <DraggableProjectCard
+              project={project}
+              index={originalIndex}
+              isDuplicate={index >= projects.length}
+              class={`preload ${sizes[originalIndex]}`}
+              iconSvg={projectIcons[originalIndex % projectIcons.length]}
+              gradientTitleClass={gradientTitleClasses[originalIndex % gradientTitleClasses.length]}
+              gradientDescClass={gradientDescClasses[originalIndex % gradientDescClasses.length]}
+            />
           );
         });
       })()}
@@ -136,17 +124,18 @@ function bentoSize(index: number) {
     if (!container || !track) return;
 
     // Obtener los proyectos desde los elementos del DOM
+    // Nota: draggable-project-card tiene la clase .project-item
     const initialCards = Array.from(track.querySelectorAll('.project-item'));
     const projects = [];
     
-    // Extraer información de los proyectos desde las tarjetas existentes
+    // Extraer información inicial
     initialCards.forEach((card, index) => {
       const originalIndex = parseInt(card.getAttribute('data-index')) || 0;
-      if (originalIndex < projects.length) return; // Evitar duplicados
+      if (originalIndex < projects.length) return; 
       
-      const title = card.querySelector('.project-title')?.textContent || `Project ${originalIndex + 1}`;
-      const description = card.querySelector('.project-desc')?.textContent || `Description for project ${originalIndex + 1}`;
-      const url = card.href || '#';
+      const title = card.querySelector('.project-title')?.textContent.trim() || `Project ${originalIndex + 1}`;
+      const description = card.querySelector('.project-desc')?.textContent.trim() || `Description for project ${originalIndex + 1}`;
+      const url = card.getAttribute('data-url') || '#';
       
       projects.push({
         id: originalIndex,
@@ -156,17 +145,13 @@ function bentoSize(index: number) {
       });
     });
 
-    // Asegurar que tenemos los proyectos únicos
     const uniqueProjects = projects.filter((project, index, self) => 
       index === self.findIndex(p => p.id === project.id)
     );
 
     console.log('Proyectos cargados:', uniqueProjects);
 
-    // Array que rastrea los elementos que han recibido la clase 'closed-state'
     const closedProjects = [];
-
-    // --- Audio System (Efectos de sonido UI) ---
     let audioContext = null;
 
     function playHoverSound() {
@@ -177,36 +162,25 @@ function bentoSize(index: number) {
         if (audioContext.state === 'suspended') {
            audioContext.resume().catch(() => {});
         }
-
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
-        // Sonido "Glass Pop" sutil y elegante
         oscillator.type = 'sine';
-        // Tono puro y limpio que sube levemente
         oscillator.frequency.setValueAtTime(500, audioContext.currentTime); 
         oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05); 
-        
-        // Envolvente de volumen muy suave (fade in/out rápido)
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
         gainNode.gain.linearRampToValueAtTime(0.015, audioContext.currentTime + 0.01);
         gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-        
         oscillator.start();
         oscillator.stop(audioContext.currentTime + 0.1);
-      } catch (e) {
-        // Fallback silencioso si el audio no está permitido
-      }
+      } catch (e) {}
     }
     
-    // Estado para el scroll infinito dinámico
     let currentBatch = 0;
     let isLoading = false;
-    const BATCH_SIZE = uniqueProjects.length; // Cargar el mismo número de proyectos cada vez
-    let allProjectCards = [...uniqueProjects, ...uniqueProjects]; // Empezar con proyectos duplicados
+    const BATCH_SIZE = uniqueProjects.length;
+    let allProjectCards = [...uniqueProjects, ...uniqueProjects];
 
     function updateRestoreButton() {
       if (!actionButton) return;
@@ -228,41 +202,20 @@ function bentoSize(index: number) {
       if (!closedProjects.includes(projectItem)) {
         closedProjects.push(projectItem);
       }
-      // Log current closed projects for debugging (count + data-indexes)
-      try {
-        const indexes = closedProjects.map(p => p.getAttribute && p.getAttribute('data-index'));
-        console.log('closedProjects ADDED -> count:', closedProjects.length, 'indexes:', indexes);
-      } catch (err) {
-        console.log('closedProjects ADDED -> count:', closedProjects.length);
-      }
       updateRestoreButton();
     }
 
     function removeClosedProject(projectItem) {
       const idx = closedProjects.indexOf(projectItem);
       if (idx !== -1) closedProjects.splice(idx, 1);
-      // Log current closed projects for debugging (count + data-indexes)
-      try {
-        const indexes = closedProjects.map(p => p.getAttribute && p.getAttribute('data-index'));
-        console.log('closedProjects REMOVED -> count:', closedProjects.length, 'indexes:', indexes);
-      } catch (err) {
-        console.log('closedProjects REMOVED -> count:', closedProjects.length);
-      }
       updateRestoreButton();
     }
 
-    // Función para crear una nueva tarjeta HTML dinámicamente
     function createProjectCard(project, index, isDuplicate = false) {
       const originalIndex = index % uniqueProjects.length;
       const sizes = [
-        'w-[18rem] h-[18rem]',
-        'w-[22rem] h-[18rem]',
-        'w-[18rem] h-[24rem]',
-        'w-[26rem] h-[20rem]',
-        'w-[20rem] h-[20rem]',
-        'w-[24rem] h-[26rem]',
-        'w-[18rem] h-[22rem]',
-        'w-[22rem] h-[24rem]'
+        'w-[18rem] h-[18rem]', 'w-[22rem] h-[18rem]', 'w-[18rem] h-[24rem]', 'w-[26rem] h-[20rem]',
+        'w-[20rem] h-[20rem]', 'w-[24rem] h-[26rem]', 'w-[18rem] h-[22rem]', 'w-[22rem] h-[24rem]'
       ];
       
       const projectIcons = [
@@ -286,46 +239,47 @@ function bentoSize(index: number) {
         'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4'
       ];
 
-      const cardElement = document.createElement('a');
-      cardElement.href = project.url;
-      cardElement.target = '_blank';
-      cardElement.rel = 'noopener noreferrer';
-      // Usar dynamic-entry para tarjetas nuevas, preload para mantener compatibilidad
+      // Use the Custom Element
+      const cardElement = document.createElement('draggable-project-card');
       const entryClass = isDuplicate ? 'dynamic-entry' : 'preload';
-      cardElement.className = `project-item ${entryClass} glass-card group ${sizes[originalIndex]} rounded-3xl shadow-lg transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105`;
+      
+      // Set the attributes expected by DraggableProjectCard logic
+      cardElement.className = `project-item ${entryClass} ${sizes[originalIndex]} shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:scale-105`;
       cardElement.setAttribute('data-index', originalIndex);
       cardElement.setAttribute('data-duplicate', isDuplicate ? 'true' : 'false');
+      // Pass the link as data-url, component logic handles double click open
+      cardElement.setAttribute('data-url', project.url);
 
+      // Recreate internal DOM structure
       cardElement.innerHTML = `
-        <div class="window-controls absolute top-3 left-3 flex space-x-2 z-10 transition-all duration-300">
-          <div class="window-control-btn window-control-close"></div>
-          <div class="window-control-btn window-control-minimize"></div>
-          <div class="window-control-btn window-control-maximize"></div>
-        </div>
-        
-        <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full">
-          <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4">
-            <div>${projectIcons[originalIndex % projectIcons.length]}</div>
-          </div>
-          <h3 class="project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]}">${project.title}</h3>
-          <p class="project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]}">${project.description}</p>
+        <div class="project-card-visual glass-card group w-full h-full relative rounded-3xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing">
+            <!-- Window Controls Bar -->
+            <div class="window-controls-bar absolute top-0 left-0 w-full h-12 z-20 flex items-center px-4">
+                <div class="window-controls flex space-x-2 transition-all duration-300 pointer-events-auto">
+                    <div class="window-control-btn window-control-close"></div>
+                    <div class="window-control-btn window-control-minimize"></div>
+                    <div class="window-control-btn window-control-maximize"></div>
+                </div>
+            </div>
+            
+            <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full pt-12 pointer-events-none">
+              <div class="project-icon w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50/50 to-purple-50/50 flex items-center justify-center border-white/20 mb-4 pointer-events-auto transition-transform duration-300">
+                <div>${projectIcons[originalIndex % projectIcons.length]}</div>
+              </div>
+              <h3 class="project-title project-text-base text-lg font-semibold mb-2 text-center leading-tight ${gradientTitleClasses[originalIndex % gradientTitleClasses.length]} pointer-events-auto">${project.title}</h3>
+              <p class="project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClasses[originalIndex % gradientDescClasses.length]} pointer-events-auto">${project.description}</p>
+            </div>
         </div>
       `;
 
       return cardElement;
     }
 
-    // Función para cargar más tarjetas dinámicamente
     function loadMoreCards() {
       if (isLoading) return;
-      
       isLoading = true;
-      // console.log(`Cargando batch ${currentBatch + 1}...`);
-      
       requestAnimationFrame(() => {
         const newCards = [];
-        
-        // Agregar una nueva tanda de proyectos (rotando a través de los proyectos originales)
         for (let i = 0; i < BATCH_SIZE; i++) {
           const projectIndex = i % uniqueProjects.length;
           const newCard = createProjectCard(uniqueProjects[projectIndex], projectIndex, true);
@@ -333,341 +287,159 @@ function bentoSize(index: number) {
           allProjectCards.push(uniqueProjects[projectIndex]);
         }
         
-        // Agregar las nuevas tarjetas al DOM con animación y estilos masonry
         newCards.forEach((card, index) => {
           track.appendChild(card);
-          
-          // Aplicar estilos masonry basados en el índice total de tarjetas
           const totalCards = track.querySelectorAll('.project-item').length;
           const cardPosition = totalCards - newCards.length + index;
           applyMasonryStyles(card, cardPosition);
-          
-          // Forzar la aplicación de estilos de gradiente
-          forceGradientStyles(card, index);
-          
-          // Configurar event listeners para los window controls de la nueva tarjeta
           setupCardEventListeners(card);
-          
-          // Animar la entrada de la nueva tarjeta
-          requestAnimationFrame(() => {
-            card.classList.add('loaded');
-            // Volver a aplicar estilos después de la animación para asegurar que se mantengan
-            forceGradientStyles(card, index);
-          });
+          requestAnimationFrame(() => { card.classList.add('loaded'); });
         });
         
         currentBatch++;
         isLoading = false;
-        // console.log(`Batch ${currentBatch} cargado. Total cards: ${allProjectCards.length}`);
       });
     }
 
-    // Función para aplicar estilos masonry a una tarjeta específica
     function applyMasonryStyles(card, position) {
-      // Remover estilos masonry existentes
       card.style.alignSelf = '';
       card.style.marginTop = '';
-      
-      // Aplicar estilos masonry basados en la posición
       const remainder = position % 5;
-      
       switch(remainder) {
-        case 0:
-          card.style.alignSelf = 'flex-start';
-          break;
-        case 1:
-          card.style.alignSelf = 'center';
-          break;
-        case 2:
-          card.style.alignSelf = 'flex-end';
-          break;
-        case 3:
-          card.style.alignSelf = 'flex-start';
-          card.style.marginTop = '2rem';
-          break;
-        case 4:
-          card.style.alignSelf = 'center';
-          card.style.marginTop = '1rem';
-          break;
+        case 0: card.style.alignSelf = 'flex-start'; break;
+        case 1: card.style.alignSelf = 'center'; break;
+        case 2: card.style.alignSelf = 'flex-end'; break;
+        case 3: card.style.alignSelf = 'flex-start'; card.style.marginTop = '2rem'; break;
+        case 4: card.style.alignSelf = 'center'; card.style.marginTop = '1rem'; break;
       }
     }
 
-    // Función para forzar la aplicación de estilos de gradiente
-    function forceGradientStyles(card, index) {
-      const projectIndex = parseInt(card.getAttribute('data-index')) || 0;
-      
-      const gradientTitleClasses = [
-        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4',
-        'gradient-text-title-1', 'gradient-text-title-2', 'gradient-text-title-3', 'gradient-text-title-4'
-      ];
-
-      const gradientDescClasses = [
-        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4',
-        'gradient-text-desc-1', 'gradient-text-desc-2', 'gradient-text-desc-3', 'gradient-text-desc-4'
-      ];
-
-      const title = card.querySelector('.project-title');
-      const desc = card.querySelector('.project-desc');
-      
-      if (title) {
-        // Remover todas las clases de gradiente existentes
-        gradientTitleClasses.forEach(cls => title.classList.remove(cls));
-        // Agregar la clase correcta
-        title.classList.add(gradientTitleClasses[projectIndex % gradientTitleClasses.length]);
-        
-        // Aplicar estilos inline como fallback para asegurar que se vean
-        const titleStyles = {
-          0: 'linear-gradient(45deg, #e11d48, #f43f5e)',
-          1: 'linear-gradient(45deg, #ea580c, #f59e0b)',
-          2: 'linear-gradient(45deg, #2563eb, #3b82f6)',
-          3: 'linear-gradient(45deg, #0284c7, #0891b2)'
-        };
-        
-        const styleIndex = projectIndex % 4;
-        title.style.background = titleStyles[styleIndex];
-        title.style.webkitBackgroundClip = 'text';
-        title.style.backgroundClip = 'text';
-        title.style.webkitTextFillColor = 'transparent';
-        title.style.fontWeight = '700';
-        
-        // Text-shadow específico para cada color
-        title.style.textShadow = '0 1px 2px rgba(0,0,0,0.1)';
-      }
-      
-      if (desc) {
-        // Remover todas las clases de gradiente existentes
-        gradientDescClasses.forEach(cls => desc.classList.remove(cls));
-        // Agregar la clase correcta
-        desc.classList.add(gradientDescClasses[projectIndex % gradientDescClasses.length]);
-        
-        // Reiniciar estilos inline para garantizar texto sólido
-        desc.style.background = 'none';
-        desc.style.webkitBackgroundClip = 'border-box';
-        desc.style.backgroundClip = 'border-box';
-        desc.style.webkitTextFillColor = 'initial';
-        desc.style.color = 'rgba(30, 41, 59, 0.95)'; // Slate 800
-        desc.style.fontWeight = '500';
-        desc.style.textShadow = '0 1px 0 rgba(255, 255, 255, 0.8)';
-      }
-      
-      console.log(`Estilos de gradiente aplicados a tarjeta ${projectIndex}`);
-    }
-
-    // Función para configurar event listeners en una tarjeta
+    // Attach external listeners (sound, restore tracking)
     function setupCardEventListeners(card) {
-      // Configurar hover para pausar scroll
-      card.addEventListener('mouseenter', () => {
-        isPaused = true;
-        playHoverSound(); // Efecto de sonido
-        // console.log('Auto-scroll pausado (hover sobre nueva tarjeta) — data-index:', card.getAttribute('data-index'));
-      });
-
+      card.addEventListener('mouseenter', () => { isPaused = true; playHoverSound(); });
       card.addEventListener('mouseleave', () => {
         const anyHover = Array.from(track.querySelectorAll('.project-item')).some(c => c.matches(':hover'));
-        if (!anyHover) {
-          isPaused = false;
-          console.log('Auto-scroll reanudado (ya no hay hover en tarjetas)');
-        }
+        if (!anyHover) isPaused = false;
       });
 
-      // Configurar window controls
+      // Window controls logic integration
       const windowControls = card.querySelectorAll('.window-control-btn');
       windowControls.forEach(btn => {
         btn.addEventListener('click', (e) => {
+          // DraggableProjectCard component handles visual state
+          // We need to track it in global closedProjects list
           const projectItem = btn.closest('.project-item');
-
           if (btn.classList.contains('window-control-close')) {
-            handleWindowControl(e, 'close', projectItem);
-          } else if (btn.classList.contains('window-control-minimize')) {
-            handleWindowControl(e, 'minimize', projectItem);
-          } else if (btn.classList.contains('window-control-maximize')) {
-            handleWindowControl(e, 'maximize', projectItem);
+             setTimeout(() => addClosedProject(projectItem), 600);
+          } else if (btn.classList.contains('window-control-maximize') || btn.classList.contains('window-control-minimize')) {
+             // Just state change, no restore tracking needed for min/max in the list?
+             // Actually, min/max cards are still visible or docked, not "closed/gone"
           }
         });
       });
+    }
 
-      // Efecto Spotlight (Seguimiento del mouse)
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        // Actualizar variables CSS para la posición del brillo
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
+    function restoreCard(projectItem) {
+      // Logic to trigger restore on the component
+      // We can manually remove the classes
+      projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
+      projectItem.style.position = '';
+      projectItem.style.top = '';
+      projectItem.style.left = '';
+      projectItem.style.transform = '';
+      projectItem.style.zIndex = '';
+      removeClosedProject(projectItem);
+    }
+    
+    // Global Restore Button Logic
+    if (actionButton) {
+      actionButton.addEventListener('click', async (ev) => {
+        ev.preventDefault();
+        if (closedProjects.length === 0) return;
+        actionButton.style.pointerEvents = 'none';
+        actionButton.classList.remove('show');
+        
+        const toRestore = closedProjects.slice();
+        for (let i = 0; i < toRestore.length; i++) {
+          const item = toRestore[i];
+          restoreCard(item);
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            await new Promise(r => setTimeout(r, 120));
+          }
+        }
+        closedProjects.length = 0;
+        updateRestoreButton();
+        actionButton.style.pointerEvents = '';
       });
     }
 
+    // Infinite Scroll Logic
     let isPaused = false;
     let animationId = null;
     let isDragging = false;
     let startX = 0;
     let scrollLeft = 0;
-    let wheelTimeout = null; // Para pausar temporalmente el auto-scroll
     let preciseScrollLeft = 0;
     let lastTimestamp = 0;
-    const SCROLL_SPEED_PPS = 60; // Pixels per second
+    const SCROLL_SPEED_PPS = 60; 
 
-    // Scroll automático con carga dinámica infinita
     function autoScroll(timestamp) {
-      if (!lastTimestamp || isPaused || isDragging) {
-        lastTimestamp = timestamp;
-      }
-      
+      if (!lastTimestamp || isPaused || isDragging) lastTimestamp = timestamp;
       if (!isPaused && !isDragging) {
         const deltaTime = timestamp - lastTimestamp;
         lastTimestamp = timestamp;
-        
-        // Use delta time for smooth speed regardless of frame rate
         const pixelsToMove = (SCROLL_SPEED_PPS * deltaTime) / 1000;
-        
-        // If container.scrollLeft changed externally (e.g. initial load or constraints), sync it
-        if (Math.abs(container.scrollLeft - preciseScrollLeft) > 5) {
-             preciseScrollLeft = container.scrollLeft;
-        }
-
+        if (Math.abs(container.scrollLeft - preciseScrollLeft) > 5) preciseScrollLeft = container.scrollLeft;
         preciseScrollLeft += pixelsToMove;
         container.scrollLeft = preciseScrollLeft;
 
-        // Verificar si estamos cerca del final y necesitamos cargar más tarjetas
-        const scrollPosition = container.scrollLeft;
         const maxScroll = container.scrollWidth - container.clientWidth;
-        const threshold = maxScroll * 0.8; // Cargar más cuando estemos al 80% del final
-        
-        if (scrollPosition >= threshold && !isLoading) {
-          // console.log('Cerca del final, cargando más tarjetas...');
-          loadMoreCards();
-        }
+        if (container.scrollLeft >= maxScroll * 0.8 && !isLoading) loadMoreCards();
       } else {
-         // Sync when paused so we resume smoothly
          preciseScrollLeft = container.scrollLeft;
       }
       animationId = requestAnimationFrame(autoScroll);
     }
 
-    // Iniciar inmediatamente después de que el DOM esté listo
-    setTimeout(() => {
-      console.log('Iniciando scroll automático...');
-      // Inicializar posición precisa para evitar saltos o NaN
-      preciseScrollLeft = container.scrollLeft;
-      requestAnimationFrame(autoScroll);
-    }, 100);
-
-    // Animación de entrada para las project cards: las tarjetas se renderizan
-    // inicialmente con la clase `preload` (render server-side) para que el
-    // primer paint las muestre fuera de su posición final. Aquí añadimos
-    // `.loaded` en un stagger usando rAF para animarlas suavemente hacia su
-    // posición original sin parpadeos.
     function animateCardsIn() {
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const cards = Array.from(track.querySelectorAll('.project-item'));
-
-      if (prefersReduced) {
-        // Remove preload so they render in place immediately
-        cards.forEach(c => c.classList.remove('preload'));
-        cards.forEach(c => c.classList.add('loaded'));
-        return;
-      }
-
-      // Ensure `.preload` is present before scheduling `.loaded`.
-      // Then use requestAnimationFrame and a small stagger to add `.loaded`.
       requestAnimationFrame(() => {
         let i = 0;
         const step = () => {
           if (i >= cards.length) {
-            // Clean up `preload` after all cards have started animating
             setTimeout(() => cards.forEach(c => c.classList.remove('preload')), 600);
             return;
           }
           cards[i].classList.add('loaded');
           i += 1;
-          // small timeout between items to create a pleasing cascade
           setTimeout(() => requestAnimationFrame(step), 40);
         };
         step();
       });
     }
 
-    // Run entrance animation shortly after mount so layout has stabilized
+    setTimeout(() => { preciseScrollLeft = container.scrollLeft; requestAnimationFrame(autoScroll); }, 100);
     setTimeout(animateCardsIn, 80);
 
-    // Pausar solo con hover
-    container.addEventListener('mouseenter', () => {
-      isPaused = true;
-      console.log('Pausado');
-    });
-
-    container.addEventListener('mouseleave', () => {
-      isPaused = false;
-      console.log('Reanudado');
-    });
-
-    // El scroll automático se pausará únicamente mientras el cursor esté sobre
-    // alguna tarjeta `.project-item`. Cuando no haya ninguna tarjeta en hover,
-    // se reanudará automáticamente.
-
-    // Primero removemos (si existen) los listeners previos en el container
-    container.replaceWith = container.replaceWith; // noop para evitar lint; no eliminar
-
-    // Configurar event listeners para las tarjetas iniciales (ya declaradas arriba)
-    initialCards.forEach(card => {
-      setupCardEventListeners(card);
-    });
-
-    // Eliminar/ignorar pause por hover en todo el contenedor (evitar duplicidad)
-    // Si ya existían listeners `container.addEventListener('mouseenter' ...)`,
-    // bórralos o coméntalos para evitar conflicto.
-
-    // Wheel scroll - Convertir scroll vertical en horizontal con carga dinámica
-    container.addEventListener('wheel', (e) => {
-      e.preventDefault();
+    // Track dragging (scroll the container)
+    function startTrackDrag(e) {
+      // If we clicked inside a DraggableProjectCard, DON'T scroll the track.
+      // The card handles its own dragging now.
+      if (e.target.closest('draggable-project-card') || e.target.closest('.window-controls')) return;
       
-      // Pausar el scroll automático temporalmente cuando el usuario usa la rueda
-      isPaused = true;
-      if (wheelTimeout) clearTimeout(wheelTimeout);
-      
-      // Usar deltaY (scroll vertical) para controlar scrollLeft (scroll horizontal)
-      const scrollSpeed = 3; // Velocidad de scroll ajustable
-      const newScrollPosition = container.scrollLeft + (e.deltaY * scrollSpeed);
-      
-      // Verificar si necesitamos cargar más tarjetas antes de hacer scroll
-      const maxScroll = container.scrollWidth - container.clientWidth;
-      const threshold = maxScroll * 0.8;
-      
-      if (newScrollPosition >= threshold && !isLoading) {
-        console.log('Wheel scroll cerca del final, cargando más tarjetas...');
-        loadMoreCards();
-      }
-      
-      // Aplicar el scroll
-      container.scrollLeft = newScrollPosition;
-      
-      // Prevenir scroll negativo
-      if (container.scrollLeft < 0) {
-        container.scrollLeft = 0;
-      }
-      
-      // Reanudar el scroll automático después de 2 segundos de inactividad
-      wheelTimeout = setTimeout(() => {
-        isPaused = false;
-        console.log('Auto-scroll reanudado después de usar la rueda');
-      }, 2000);
-      
-    }, { passive: false });
-
-    // Drag functionality
-    function startDragging(e) {
       isDragging = true;
       container.style.cursor = 'grabbing';
       startX = (e.pageX || e.touches[0].pageX) - container.offsetLeft;
       scrollLeft = container.scrollLeft;
     }
 
-    function stopDragging() {
+    function stopTrackDrag() {
+      if(!isDragging) return;
       isDragging = false;
       container.style.cursor = 'grab';
     }
 
-    function drag(e) {
+    function performTrackDrag(e) {
       if (!isDragging) return;
       e.preventDefault();
       const x = (e.pageX || e.touches[0].pageX) - container.offsetLeft;
@@ -675,174 +447,22 @@ function bentoSize(index: number) {
       container.scrollLeft = scrollLeft - walk;
     }
 
-    // Event listeners
-    container.addEventListener('mousedown', startDragging);
-    container.addEventListener('touchstart', startDragging, { passive: true });
-    document.addEventListener('mouseup', stopDragging);
-    document.addEventListener('touchend', stopDragging);
-    document.addEventListener('mousemove', drag);
-    document.addEventListener('touchmove', drag, { passive: true });
+    container.addEventListener('mousedown', startTrackDrag);
+    container.addEventListener('touchstart', startTrackDrag, { passive: true });
+    
+    // Attach to document for full window drag tracking
+    document.addEventListener('mouseup', stopTrackDrag);
+    document.addEventListener('touchend', stopTrackDrag);
+    document.addEventListener('mousemove', performTrackDrag);
+    document.addEventListener('touchmove', performTrackDrag, { passive: true });
 
-    // Window Controls functionality
-    function handleWindowControl(e, action, projectItem) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      // Remover clases de animación y estado previas
-      projectItem.classList.remove('closing', 'minimizing', 'maximizing', 'restoring');
-      projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
-
-      switch(action) {
-        case 'close':
-          projectItem.classList.add('closing');
-          setTimeout(() => {
-            projectItem.classList.remove('closing');
-            projectItem.classList.add('closed-state');
-            // Añadir a la lista de cerrados cuando la clase ya está aplicada
-            addClosedProject(projectItem);
-          }, 600);
-          break;
-
-        case 'minimize':
-          projectItem.classList.add('minimizing');
-          setTimeout(() => {
-            projectItem.classList.remove('minimizing');
-            projectItem.classList.add('minimized-state');
-          }, 600);
-          break;
-
-        case 'maximize':
-          projectItem.classList.add('maximizing');
-          setTimeout(() => {
-            projectItem.classList.remove('maximizing');
-            projectItem.classList.add('maximized-state');
-          }, 400);
-          break;
-      }
-    }
-
-    // Función para restaurar tarjeta desde el borde - USA TRANSICIÓN CSS
-    function restoreCard(projectItem) {
-      // Remover estados y permitir que la transición CSS haga el trabajo
-      projectItem.classList.remove('closed-state', 'minimized-state', 'maximized-state');
-      // Limpiar estilos inline aplicados por JavaScript
-      projectItem.style.position = '';
-      projectItem.style.top = '';
-      projectItem.style.left = '';
-      projectItem.style.transform = '';
-      projectItem.style.zIndex = '';
-
-      // Quitar de la lista de cerrados si estaba ahí
-      removeClosedProject(projectItem);
-      // La transición CSS automáticamente animará de vuelta al estado original
-    }
-
-    // Agregar event listeners a todos los window controls
-    document.querySelectorAll('.window-control-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const projectItem = btn.closest('.project-item');
-
-        if (btn.classList.contains('window-control-close')) {
-          handleWindowControl(e, 'close', projectItem);
-        } else if (btn.classList.contains('window-control-minimize')) {
-          handleWindowControl(e, 'minimize', projectItem);
-        } else if (btn.classList.contains('window-control-maximize')) {
-          handleWindowControl(e, 'maximize', projectItem);
-        }
-      });
-    });
-
-    // Event listener para restaurar tarjetas clickeando en ellas cuando están en los bordes
-    document.addEventListener('click', (e) => {
-      const projectItem = e.target.closest('.project-item');
-      if (projectItem && (
-        projectItem.classList.contains('closed-state') ||
-        projectItem.classList.contains('minimized-state') ||
-        projectItem.classList.contains('maximized-state')
-      )) {
-        e.preventDefault();
-        e.stopPropagation();
-        restoreCard(projectItem);
-      }
-    });
-
-    // Mostrar un feedback simple al pulsar el botón de restaurar (no restaura todo por ahora)
-    if (actionButton) {
-      actionButton.addEventListener('click', async (ev) => {
-        ev.preventDefault();
-        if (closedProjects.length === 0) return;
-
-        // Disable button while restoring
-        actionButton.style.pointerEvents = 'none';
-        actionButton.classList.remove('show');
-
-        // Small pop animation
-        actionButton.animate([
-          { transform: 'translateY(0)' },
-          { transform: 'translateY(-8px)' },
-          { transform: 'translateY(0)' }
-        ], { duration: 260 });
-
-        console.log('Restore ALL clicked, restoring', closedProjects.length, 'items');
-
-        // Work on a shallow copy because restoreCard will modify the array
-        const toRestore = closedProjects.slice();
-
-        for (let i = 0; i < toRestore.length; i++) {
-          const item = toRestore[i];
-          try {
-            // Add a tiny stagger for visibility
-            restoreCard(item);
-            console.log('Restored item index:', item.getAttribute && item.getAttribute('data-index'));
-            // Wait a bit so user sees the individual restores (skip if prefers-reduced-motion)
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-              await new Promise(r => setTimeout(r, 120));
-            }
-          } catch (err) {
-            console.error('Error restoring item', err);
-          }
-        }
-
-        // Ensure array cleared and UI updated
-        closedProjects.length = 0;
-        updateRestoreButton();
-        console.log('All restored, closedProjects count now:', closedProjects.length);
-
-        // Re-enable pointer events (updateRestoreButton may hide the button)
-        actionButton.style.pointerEvents = '';
-      });
-    }
-
-    // Cleanup
-    window.addEventListener('beforeunload', () => {
-      if (animationId) {
-        cancelAnimationFrame(animationId);
-      }
-    });
+    initialCards.forEach(card => setupCardEventListeners(card));
   });
 </script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
-
-  /* CSS variables for macOS-like text colors and sizes */
-  :root {
-    --project-text-color: rgba(0,0,0,0.85);
-    --project-muted-color: rgba(0,0,0,0.55);
-    --project-hint-color: rgba(0,0,0,0.35);
-
-    --project-title-size: 1.25rem; /* 20px */
-    --project-desc-size: 0.95rem;  /* ~15px */
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --project-text-color: rgba(255,255,255,0.92);
-      --project-muted-color: rgba(255,255,255,0.75);
-      --project-hint-color: rgba(255,255,255,0.55);
-    }
-  }
-  /* Layout infinito horizontal */
+  
   .projects-infinite-wrapper { 
     height: 100vh; 
     position: relative;
@@ -860,616 +480,74 @@ function bentoSize(index: number) {
     scroll-behavior: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
-    user-select: none; /* Evita selección de texto durante el drag */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+    user-select: none;
+    touch-action: pan-x; 
   }
   
-  .infinite-container::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .infinite-container:active { 
-    cursor: grabbing; 
-  }
+  .infinite-container::-webkit-scrollbar { display: none; }
+  .infinite-container:active { cursor: grabbing; }
   
   .projects-track {
     display: flex;
-    flex-direction: row; /* Horizontal layout */
+    flex-direction: row;
     align-items: flex-start;
     gap: 1.5rem;
     height: 100%;
-    width: max-content; /* Permite que el track se extienda horizontalmente */
+    width: max-content;
     padding: 2rem;
-    /* Crear columnas de diferentes alturas para efecto masonry */
-  }
-  
-  .project-item { 
-    flex: 0 0 auto;
-    display: flex;
-    align-items: stretch;
-    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Transición suave para todos los cambios */
-    user-select: none; /* Evita selección de texto */
-    -webkit-user-select: none; /* Safari */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* IE/Edge */
   }
 
-  /* Entrada desde arriba: estado inicial y estado cargado */
-  .project-item.preload {
+  /* Global styles for dynamic cards */
+  :global(.project-item) {
+    flex: 0 0 auto;
+    /* Transition is handled by component or logic */
+  }
+
+  :global(.project-item:nth-child(5n+1)) { align-self: flex-start; }
+  :global(.project-item:nth-child(5n+2)) { align-self: center; }
+  :global(.project-item:nth-child(5n+3)) { align-self: flex-end; }
+  :global(.project-item:nth-child(5n+4)) { align-self: flex-start; margin-top: 2rem; }
+  :global(.project-item:nth-child(5n+5)) { align-self: center; margin-top: 1rem; }
+
+  :global(.project-item.preload) {
     transform: translateY(-32px) scale(0.995);
     opacity: 0;
-    will-change: transform, opacity;
   }
-
-  .project-item.loaded {
+  
+  :global(.project-item.loaded) {
     transform: translateY(0) scale(1);
     opacity: 1;
-    transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1), opacity 520ms ease;
   }
 
-  /* Animación específica para tarjetas cargadas dinámicamente */
-  .project-item.dynamic-entry {
+  :global(.project-item.dynamic-entry) {
     transform: translateX(50px) scale(0.95);
     opacity: 0;
-    transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  .project-item.dynamic-entry.loaded {
+  :global(.project-item.dynamic-entry.loaded) {
     transform: translateX(0) scale(1);
     opacity: 1;
   }
-  
-  .project-item-inner { 
-    height: 100%; 
-    width: 100%; 
-    user-select: none; /* Evita selección de texto en el contenido */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
 
-  /* Asegurar que títulos y descripciones usen Poppins (wght 500) */
-  .project-title,
-  .project-desc {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    font-weight: 500 !important;
-  }
-
-  /* Generic base class for project title and description
-     - centralizes font-family, size and common text properties
-     - keep gradient classes only for colors/shadows/customs */
-  .project-text-base {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    color: var(--project-text-color);
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    transition: color 160ms ease, opacity 160ms ease;
-  }
-
-  /* size helpers (apply as needed; template already uses text-lg/text-sm utilities) */
-  .project-text-base.title { font-size: var(--project-title-size); }
-  .project-text-base.desc { font-size: var(--project-desc-size); color: var(--project-muted-color); }
-
-  /* Crear efecto masonry con diferentes alturas */
-  .project-item:nth-child(5n+1) { align-self: flex-start; }
-  .project-item:nth-child(5n+2) { align-self: center; }
-  .project-item:nth-child(5n+3) { align-self: flex-end; }
-  .project-item:nth-child(5n+4) { align-self: flex-start; margin-top: 2rem; }
-  .project-item:nth-child(5n+5) { align-self: center; margin-top: 1rem; }
-
-  /* Ajustes responsivos: reducir tamaños en pantallas pequeñas */
   @media (max-width: 1024px) {
-    .project-item[class*='w-[26rem]'] { width: 20rem !important; }
-    .project-item[class*='w-[24rem]'] { width: 18rem !important; }
-    .project-item[class*='w-[22rem]'] { width: 16rem !important; }
+    :global(.project-item[class*='w-[26rem]']) { width: 20rem !important; }
+    :global(.project-item[class*='w-[24rem]']) { width: 18rem !important; }
+    :global(.project-item[class*='w-[22rem]']) { width: 16rem !important; }
   }
   
   @media (max-width: 768px) {
-    .project-item { 
-      width: 14rem !important; 
-      height: 16rem !important; 
-    }
-    .projects-track {
-      padding: 1rem;
-      gap: 1rem;
-    }
+    :global(.project-item) { width: 14rem !important; height: 16rem !important; }
+    .projects-track { padding: 1rem; gap: 1rem; }
   }
 
-  /* Asegurar que las nuevas tarjetas también reciban los estilos masonry */
-  .project-item.dynamic-entry {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: stretch;
-  }
+  .scroll-indicators { opacity: 0.6; transition: opacity 0.3s ease; }
+  .projects-infinite-wrapper:hover .scroll-indicators { opacity: 1; }
+  .scroll-indicator { transition: all 0.3s ease; }
 
-  /* Forzar estilos de gradiente en tarjetas dinámicas */
-  .project-item.dynamic-entry .project-title {
-  font-size: 1.25rem !important;
-  letter-spacing: 0.03em !important;
-  transition: all 0.3s ease !important;
-  }
-
-  .project-item.dynamic-entry .project-desc {
-  font-size: 0.95rem !important;
-  line-height: 1.6 !important;
-  letter-spacing: 0.025em !important;
-  transition: all 0.3s ease !important;
-  }
-
-  /* Estilo de tarjeta glass mejorado - Mayor contraste y legibilidad */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.70); /* MÁS OPACO PARA MEJOR CONTRASTE */
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    font-family: 'Poppins', sans-serif;
-    box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.08), 
-      0 4px 12px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-    
-    /* Variables para el efecto spotlight */
-    --mouse-x: 50%;
-    --mouse-y: 50%;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Efecto Spotlight (Brillo que sigue al mouse) */
-  .glass-card::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(
-      600px circle at var(--mouse-x) var(--mouse-y), 
-      rgba(255, 255, 255, 0.8),
-      transparent 40%
-    );
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 1;
-    pointer-events: none;
-    mix-blend-mode: overlay;
-  }
-
-  .glass-card:hover::after {
-    opacity: 1;
-  }
-  
-  .glass-card:hover {
-    background: rgba(255, 255, 255, 0.85); /* Casi sólido en hover para máxima legibilidad */
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: 
-      0 20px 50px rgba(0, 0, 0, 0.12),
-      0 8px 20px rgba(0, 0, 0, 0.06),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-    border-color: rgba(255, 255, 255, 0.9);
-  }
-  
-  /* Efecto hover para el icono */
-  .project-icon {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  
-  .glass-card:hover .project-icon {
-    transform: scale(1.15) rotate(8deg);
-    background: linear-gradient(135deg, rgba(239, 246, 255, 0.8), rgba(245, 243, 255, 0.8));
-    border-color: rgb(255, 255, 255);
-  }
-  
-  /* Efecto hover para el título */
-  .project-title {
-    transition: all 0.3s ease;
-  }
-  
-  .glass-card:hover .project-title {
-    transform: translateY(-2px);
-    color: #4f46e5;
-    text-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
-  }
-  
-  /* Limitar el número de líneas en la descripción */
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  /* Estilos para macOS-inspired design */
-  .glass-card {
-    border-radius: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  /* Efecto de borde sutil superior */
-  .glass-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, 
-      transparent, 
-      rgba(255,255,255,0.8), 
-      transparent
-    );
-    pointer-events: none;
-  }
-  
-  /* Indicadores de scroll */
-  .scroll-indicators {
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-  }
-  
-  .projects-infinite-wrapper:hover .scroll-indicators {
-    opacity: 1;
-  }
-  
-  .scroll-indicator {
-    transition: all 0.3s ease;
-  }
-  
-  /* Animación sutil de entrada para las tarjetas - DESHABILITADA */
-  .project-item {
-    /* animation: slideInFromRight 0.6s ease-out; */
-    /* animation-fill-mode: both; */
-  }
-  
-  /* .project-item:nth-child(1) { animation-delay: 0.1s; }
-  .project-item:nth-child(2) { animation-delay: 0.2s; }
-  .project-item:nth-child(3) { animation-delay: 0.3s; }
-  .project-item:nth-child(4) { animation-delay: 0.4s; }
-  .project-item:nth-child(5) { animation-delay: 0.5s; } */
-  
-  @keyframes slideInFromRight {
-    from {
-      opacity: 0;
-      transform: translateX(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-  
-  /* Mejoras para accesibilidad */
-  @media (prefers-reduced-motion: reduce) {
-    .project-item,
-    .glass-card,
-    .project-icon,
-    .project-title {
-      animation: none !important;
-      transition: none !important;
-    }
-  }
-  
-  /* Estados de focus para accesibilidad */
-  .glass-card:focus-visible {
-    outline: 2px solid #4f46e5;
-    outline-offset: 4px;
-  }
-
-  /* Prevenir selección de texto durante el drag en toda la aplicación */
-  .infinite-container.dragging,
-  .infinite-container.dragging * {
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-  }
-
-  /* Prevenir selección de texto en todos los elementos de proyecto */
-  .project-item *,
-  .glass-card *,
-  .project-icon *,
-  .project-title,
-  .project-desc {
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-  }
-
-  /* Estilos simplificados para el borde del contenedor de iconos */
-  .glass-card:hover .project-icon {
-    border-color: rgba(255, 255, 255, 0.6) !important;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
-    transform: scale(1.15) rotate(8deg);
-    box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
-  }
-  
-  /* Efectos hover para iconos SVG - cambiar stroke */
-  .glass-card:hover svg.gradient-icon-1 {
-    stroke: #ff6b6b !important;
-    filter: drop-shadow(0 4px 8px rgba(255, 154, 158, 0.4));
-  }
-  
-  .glass-card:hover svg.gradient-icon-2 {
-    stroke: #ffc048 !important;
-    filter: drop-shadow(0 4px 8px rgba(250, 208, 196, 0.4));
-  }
-  
-  .glass-card:hover svg.gradient-icon-3 {
-    stroke: #667eea !important;
-    filter: drop-shadow(0 4px 8px rgba(161, 196, 253, 0.4));
-  }
-  
-  .glass-card:hover svg.gradient-icon-4 {
-    stroke: #764ba2 !important;
-    filter: drop-shadow(0 4px 8px rgba(194, 233, 251, 0.4));
-  }
-
-  /* Estilos de gradientes macOS para títulos - Colores más saturados y oscuros */
-  .gradient-text-title-1 {
-    background: linear-gradient(45deg, #e11d48, #f43f5e); /* Rosa Oscuro/Vibrante */
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 2px rgba(225, 29, 72, 0.2);
-    letter-spacing: 0.01em;
-    font-weight: 700;
-  }
-  
-  .gradient-text-title-2 {
-    background: linear-gradient(45deg, #ea580c, #f59e0b); /* Naranja Oscuro/Ambar */
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 2px rgba(234, 88, 12, 0.2);
-    letter-spacing: 0.01em;
-    font-weight: 700;
-  }
-  
-  .gradient-text-title-3 {
-    background: linear-gradient(45deg, #2563eb, #3b82f6); /* Azul Real Oscuro */
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
-    letter-spacing: 0.01em;
-    font-weight: 700;
-  }
-  
-  .gradient-text-title-4 {
-    background: linear-gradient(45deg, #0284c7, #0891b2); /* Cyan/Teal Oscuro */
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 2px rgba(2, 132, 199, 0.2);
-    letter-spacing: 0.01em;
-    font-weight: 700;
-  }
-
-  /* Descripciones SÍLIDAS y OSCURAS para máxima legibilidad */
-  .gradient-text-desc-1,
-  .gradient-text-desc-2,
-  .gradient-text-desc-3,
-  .gradient-text-desc-4 {
-    background: none !important;
-    -webkit-background-clip: border-box !important;
-    background-clip: border-box !important;
-    -webkit-text-fill-color: initial !important;
-    color: rgba(30, 41, 59, 0.95) !important; /* Gris oscuro casi negro (Slate 800) */
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8); /* Highlight blanco sutil */
-    font-weight: 500 !important;
-    opacity: 0.9;
-  }
-
-  /* Efectos hover para textos - Más oscuro para mejor legibilidad */
-  .glass-card:hover .gradient-text-title-1,
-  .glass-card:hover .gradient-text-title-2,
-  .glass-card:hover .gradient-text-title-3,
-  .glass-card:hover .gradient-text-title-4 {
-    transform: translateY(-2px);
-    scale: 1.05;
-  }
-  
-  .glass-card:hover .gradient-text-desc-1,
-  .glass-card:hover .gradient-text-desc-2,
-  .glass-card:hover .gradient-text-desc-3,
-  .glass-card:hover .gradient-text-desc-4 {
-    scale: 1.05;
-  }
-
-  /* macOS Window Controls */
-  .window-controls {
-    pointer-events: auto; /* Permitir interacciones */
-  }
-  
-  .window-control-btn {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
-    position: relative;
-    border: 0.5px solid rgba(0, 0, 0, 0.1);
-    cursor: pointer; /* Hacer clickeable */
-  }
-  
-  /* Colores característicos de macOS */
-  .window-control-close {
-    background: #ff5f57;
-    background: linear-gradient(135deg, #ff6058 0%, #ff4d4d 100%);
-  }
-  
-  .window-control-minimize {
-    background: #ffbd2e;
-    background: linear-gradient(135deg, #ffca2c 0%, #ffb000 100%);
-  }
-  
-  .window-control-maximize {
-    background: #28ca42;
-    background: linear-gradient(135deg, #32d74b 0%, #28a745 100%);
-  }
-  
-  .window-control-btn:hover {
-    transform: scale(1.1);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.4);
-  }
-  
-  /* Iconos dentro de los botones (aparecen solo en hover) */
-  .window-control-close:hover::after {
-    content: '✕';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #8B1538;
-    font-size: 8px;
-    font-weight: bold;
-  }
-  
-  .window-control-minimize:hover::after {
-    content: '−';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #B45309;
-    font-size: 10px;
-    font-weight: bold;
-  }
-  
-  .window-control-maximize:hover::after {
-    content: '+';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #15803D;
-    font-size: 10px;
-    font-weight: bold;
-  }
-  
-  .window-controls {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 2px 4px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.05);
-  }
-
-  /* Animaciones estilo macOS para window controls */
-  .project-item.closing {
-    animation: macosClose 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    z-index: 1000;
-  }
-  
-  .project-item.minimizing {
-    animation: macosMinimize 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    z-index: 1000;
-  }
-  
-  .project-item.maximizing {
-    animation: macosMaximize 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  }
-  
-  /* Animación de cerrar - mover hacia posición absoluta usando custom properties */
-  @keyframes macosClose {
-    0% {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-      
-    }
-    100% {
-      transform: scale(0.8) translateY(-1000px);
-    }
-  }
-  
-  /* Animación de minimizar - se vuelve muy pequeña */
-  @keyframes macosMinimize {
-    0% {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(0.15) translateY(0);
-      opacity: 0.7;
-    }
-  }
-  
-  /* Animación de maximizar - se vuelve más grande */
-  @keyframes macosMaximize {
-    0% {
-      transform: scale(1) translateY(0);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1.8) translateY(0);
-      opacity: 1;
-    }
-  }
-  
-  /* Animación de restaurar tarjeta - Simplificada para usar transición CSS */
-  .project-item.restoring {
-    /* La transición CSS base se encarga de la animación */
-  }
-  
-  /* Keyframe mantenido solo como referencia pero no se usa */
-  @keyframes macosRestore {
-    0% {
-      opacity: 0.8;
-    }
-    100% {
-      transform: scale(1) translate(0, 0);
-      opacity: 1;
-    }
-  }
-  
-  /* Estados finales para mantener posición */
-  .project-item.closed-state {
-    cursor: pointer;
-    /* Usar transform + opacity (animables) para permitir una transición suave al restaurar */
-    transform: translateY(-1000px) scale(0.8);
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* Sugerencia de rendimiento: indicar propiedades que cambiarán */
-  .project-item,
-  .project-item .project-item-inner {
-    will-change: transform, opacity;
-  }
-  
-  .project-item.minimized-state {
-    transform: scale(0.15) translateY(0) !important;
-    opacity: 0.7 !important;
-    z-index: 1000;
-    cursor: pointer;
-  }
-  
-  .project-item.maximized-state {
-    transform: scale(1.8) translateY(0) !important;
-    opacity: 1 !important;
-    z-index: 1000;
-    cursor: pointer;
-  }
-
-  /* Estilos para el botón macOS en la esquina inferior derecha */
   .macos-restore-button {
-    position: fixed;
-    right: 1.25rem;
-    bottom: 1.25rem;
-    z-index: 1200;
-    width: auto;
-    height: 56px;
-    border-radius: 9999px;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    padding: 8px 12px;
+    position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 1200;
+    width: auto; height: 56px; border-radius: 9999px;
+    align-items: center; justify-content: center; gap: 10px; padding: 8px 12px;
     background: linear-gradient(180deg, rgba(255,255,255,0.42), rgba(245, 245, 249, 0.763));
     box-shadow: 0 12px 36px rgba(11, 11, 13, 0.18), inset 0 1px 0 rgba(255,255,255,0.6);
     border: 1px solid rgba(255,255,255,0.35);
@@ -1477,47 +555,18 @@ function bentoSize(index: number) {
     -webkit-backdrop-filter: blur(10px) saturate(120%);
     cursor: pointer;
     transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.16s ease;
-    opacity: 0.98;
-    pointer-events: auto;
+    opacity: 0.98; pointer-events: auto;
   }
-
-  .macos-restore-button-inner {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .macos-restore-icon {
-    width: 18px;
-    height: 18px;
-    stroke: url(#fake) !important; /* fallback; we'll tint via CSS */
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12));
-  }
-
+  .macos-restore-button:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(11,11,13,0.22), inset 0 1px 0 rgba(255,255,255,0.7); }
+  .macos-restore-button.show { display: inline-flex !important; animation: popIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  
+  .macos-restore-button-inner { display: inline-flex; align-items: center; gap: 8px; }
   .macos-restore-label {
-  font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-    font-size: 0.9rem;
-    line-height: 1;
-    display: inline-block;
+    font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.9rem; line-height: 1;
     background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
     text-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    transform: translateY(0);
-  }
-
-  /* Ajustes de hover para enfatizar el efecto glass + gradiente */
-  .macos-restore-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 18px 44px rgba(11,11,13,0.22), inset 0 1px 0 rgba(255,255,255,0.7);
-  }
-
-  .macos-restore-button.show {
-    display: inline-flex !important;
-    animation: popIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   @keyframes popIn {
