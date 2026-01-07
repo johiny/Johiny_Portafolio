@@ -64,7 +64,7 @@ const ProfileCard = () => {
     
     return(
     <div 
-        className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col ${mounted ? 'entered' : ''}`}
+        className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col select-none pointer-events-auto ${mounted ? 'entered' : ''}`}
         onMouseDown={handleMouseDown}
         style={{
             cursor: isDragging ? 'grabbing' : 'grab',
@@ -98,7 +98,7 @@ const ProfileCard = () => {
                     <h2 id="myDescription" className="text-base profile-desc-text md:text-lg p-3 rounded-lg backdrop-blur-sm flex-grow">
                         <Typewriter
                             delaySpeed={1700}
-                            words={["","I began my journey into coding two years ago, but my fascination with computers dates back to my earliest memories. As a child, one of my top Christmas wishes was for a toy computer. Thanks to this passion, I became an early adopter of the internet and learned many skills that have brought immense joy to my life. I have completed a variety of web projects using my preferred stack, and while I do have a favorite one, I am always open to trying new things and making improvements, just as I would switch out ingredients in a sandwich to make it even tastier."]}
+                            words={["","I grew up with the internet, learning its language before I could master my own. Today, with five years of professional experience, I see every line of code as an opportunity to simplify the world. I don’t just write code; I design transformative experiences that break barriers. By constantly refining my craft and evolving my tech stack, I aim to build seamless, intuitive tools that return to humanity its most precious gift—time—empowering people to dream bigger and move faster."]}
                             typeSpeed={typeSpeed}
                             cursor
                             cursorColor="#ff9a9e"
