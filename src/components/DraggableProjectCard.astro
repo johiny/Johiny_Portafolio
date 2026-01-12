@@ -35,9 +35,9 @@ const {
     <div class="window-controls-bar absolute top-0 left-0 w-full h-12 z-20 flex items-center px-4">
       <!-- Window Controls -->
       <div class="window-controls flex space-x-2 transition-all duration-300 pointer-events-auto">
-        <div class="window-control-btn window-control-close"></div>
-        <div class="window-control-btn window-control-minimize"></div>
-        <div class="window-control-btn window-control-maximize"></div>
+        <div class="window-control-btn window-control-close" data-action="close" title="Close"></div>
+        <div class="window-control-btn window-control-minimize" data-action="minimize" title="Minimize"></div>
+        <div class="window-control-btn window-control-maximize" data-action="maximize" title="Maximize"></div>
       </div>
     </div>
     
@@ -321,20 +321,75 @@ const {
     }
 
     onClick(e) {
+      console.log('onClick called');
+      console.log('target:', e.target);
+      
       if (this.hasMoved) {
+        console.log('hasMoved true, ignoring click');
         e.preventDefault();
         e.stopPropagation();
         this.hasMoved = false;
         return;
       }
 
-      // @ts-ignore
-      if (e.target.closest('.window-control-btn')) return;
+      // Buscar el botón en el DOM del componente
+      const controlBtn = this.querySelector('.window-control-btn');
+      console.log('controlBtn found:', controlBtn);
+      
+      if (controlBtn) {
+        const isOnButton = e.target === controlBtn || controlBtn.contains(e.target);
+        console.log('isOnButton:', isOnButton);
+        
+        if (isOnButton) {
+          e.stopPropagation();
+          const action = controlBtn.getAttribute('data-action');
+          console.log('action:', action);
+          this.handleWindowAction(action);
+          return;
+        }
+      }
 
       const url = this.getAttribute('data-url');
+      console.log('url:', url);
       if (url && url !== '#') {
         window.open(url, '_blank');
       }
+    }
+
+    handleWindowAction(action) {
+      if (action === 'close') {
+        this.classList.add('closing');
+        setTimeout(() => this.classList.add('closed-state'), 600);
+      }
+      else if (action === 'minimize') {
+        this.classList.add('minimizing');
+        setTimeout(() => {
+          this.classList.remove('minimizing');
+          this.classList.add('minimized-state');
+        }, 600);
+      }
+      else if (action === 'maximize') {
+        this.classList.add('maximizing');
+        setTimeout(() => {
+          this.classList.remove('maximizing');
+          this.classList.add('maximized-state', 'is-maximized');
+        }, 400);
+        
+        setTimeout(() => {
+          const overlay = document.getElementById('maximize-overlay');
+          if (overlay) overlay.classList.remove('hidden');
+        }, 400);
+      }
+    }
+
+    restoreMinimized() {
+      this.classList.remove('minimized-state');
+      this.classList.add('restoring');
+      setTimeout(() => this.classList.remove('restoring'), 400);
+    }
+
+    unmaximize() {
+      this.classList.remove('maximized-state', 'is-maximized');
     }
   }
 

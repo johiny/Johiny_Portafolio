@@ -101,6 +101,49 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 }
+
+.mac-restore-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 22px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.mac-restore-btn:hover {
+  opacity: 1;
+  background: rgba(0,0,0,0.08);
+}
+
+.mac-restore-btn:active {
+  transform: scale(0.92);
+}
+
+.mac-restore-btn.has-closed {
+  opacity: 1;
+}
+
+.mac-restore-btn.has-closed:hover {
+  background: rgba(0,0,0,0.12);
+}
+
+.mac-restore-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .mac-restore-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  .mac-restore-btn.has-closed:hover {
+    background: rgba(255,255,255,0.15);
+  }
+}
 </style>
 
 <header class="mac-nav" role="navigation" aria-label="System Menu Bar">
@@ -125,6 +168,14 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
 
   <!-- Right Side: Status Icons + Clock -->
   <div class="mac-right">
+    <!-- Restore Closed Windows Button -->
+    <div class="mac-restore-btn" id="mac-restore-btn" onclick="restoreClosedCards()" title="Restore closed windows" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    </div>
+
     <!-- Wifi -->
     <div class="mac-status-item" title="Wi-Fi">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" stroke-width="2">
@@ -161,12 +212,65 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
 <script is:inline>
   function updateClock() {
     const now = new Date();
-    // Format: "Mon Jun 22 9:41 AM" without comma
     const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
     const timeString = now.toLocaleDateString('en-US', options).replace(',', '');
     const clockEl = document.getElementById('mac-clock-time');
     if (clockEl) clockEl.textContent = timeString;
   }
+  
+  function restoreClosedCards() {
+    const restoreBtn = document.getElementById('mac-restore-btn');
+    const closedCards = document.querySelectorAll('.project-item.closed-state');
+    
+    closedCards.forEach(card => {
+      card.classList.remove('closed-state', 'closing');
+      card.style.position = '';
+      card.style.transform = '';
+      card.style.opacity = '';
+      card.style.zIndex = '';
+    });
+    
+    if (restoreBtn) {
+      restoreBtn.setAttribute('hidden', '');
+      restoreBtn.classList.remove('has-closed');
+    }
+  }
+  
+  // Monitor for closed cards and show restore button
+  function monitorClosedCards() {
+    const restoreBtn = document.getElementById('mac-restore-btn');
+    const closedCards = document.querySelectorAll('.project-item.closed-state');
+    
+    if (restoreBtn) {
+      if (closedCards.length > 0) {
+        restoreBtn.removeAttribute('hidden');
+        restoreBtn.classList.add('has-closed');
+      } else {
+        restoreBtn.setAttribute('hidden', '');
+        restoreBtn.classList.remove('has-closed');
+      }
+    }
+  }
+  
+  // Check for closed cards periodically
+  setInterval(monitorClosedCards, 500);
+  
+  // Also monitor for class changes
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((m) => {
+      if (m.type === 'attributes' && m.attributeName === 'class') {
+        monitorClosedCards();
+      }
+    });
+  });
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    monitorClosedCards();
+    document.querySelectorAll('.project-item').forEach(card => {
+      observer.observe(card, { attributes: true });
+    });
+  });
+  
   updateClock();
   setInterval(updateClock, 1000 * 30);
 </script>

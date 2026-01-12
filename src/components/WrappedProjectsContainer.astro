@@ -109,18 +109,10 @@ function bentoSize(index: number) {
   </div>
 </div>
 
-<!-- Botón visual macOS (solo UI) en la esquina inferior derecha -->
-<div id="macos-restore-button" class="macos-restore-button" role="button" tabindex="0" aria-label="Restaurar ventanas cerradas" hidden>
-  <div class="macos-restore-button-inner">
-    <span class="macos-restore-label">Restore</span>
-  </div>
-</div>
-
 <script is:inline>
   document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('wrapped-projects-container');
     const track = container?.querySelector('.projects-track');
-    const actionButton = document.getElementById('macos-restore-button');
     if (!container || !track) return;
 
     // Obtener los proyectos desde los elementos del DOM
@@ -182,18 +174,8 @@ function bentoSize(index: number) {
     let allProjectCards = [...uniqueProjects, ...uniqueProjects];
 
     function updateRestoreButton() {
-      if (!actionButton) return;
-      if (closedProjects.length > 0) {
-        actionButton.removeAttribute('hidden');
-        actionButton.classList.add('show');
-        actionButton.setAttribute('aria-label', `Restaurar ${closedProjects.length} ventanas`);
-        actionButton.style.pointerEvents = 'auto';
-      } else {
-        actionButton.classList.remove('show');
-        actionButton.setAttribute('aria-label', 'Restaurar ventanas cerradas');
-        actionButton.style.pointerEvents = 'none';
-        actionButton.setAttribute('hidden', '');
-      }
+      // Restore button is now in MacNavBar, this function is kept for compatibility
+      // but doesn't control any UI element here
     }
 
     function addClosedProject(projectItem) {
@@ -250,28 +232,8 @@ function bentoSize(index: number) {
       removeClosedProject(projectItem);
     }
     
-    // Global Restore Button Logic
-    if (actionButton) {
-      actionButton.addEventListener('click', async (ev) => {
-        ev.preventDefault();
-        if (closedProjects.length === 0) return;
-        actionButton.style.pointerEvents = 'none';
-        actionButton.classList.remove('show');
-        
-        const toRestore = closedProjects.slice();
-        for (let i = 0; i < toRestore.length; i++) {
-          const item = toRestore[i];
-          restoreCard(item);
-          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            await new Promise(r => setTimeout(r, 120));
-          }
-        }
-        closedProjects.length = 0;
-        updateRestoreButton();
-        actionButton.style.pointerEvents = '';
-      });
-    }
-
+    // Global Restore Button Logic is now handled by MacNavBar
+    
     // Infinite Scroll Logic
     let isPaused = false;
     let animationId = null;
@@ -480,34 +442,4 @@ function bentoSize(index: number) {
   .scroll-indicators { opacity: 0.6; transition: opacity 0.3s ease; }
   .projects-infinite-wrapper:hover .scroll-indicators { opacity: 1; }
   .scroll-indicator { transition: all 0.3s ease; }
-
-  .macos-restore-button {
-    position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 1200;
-    width: auto; height: 56px; border-radius: 9999px;
-    align-items: center; justify-content: center; gap: 10px; padding: 8px 12px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.42), rgba(245, 245, 249, 0.763));
-    box-shadow: 0 12px 36px rgba(11, 11, 13, 0.18), inset 0 1px 0 rgba(255,255,255,0.6);
-    border: 1px solid rgba(255,255,255,0.35);
-    backdrop-filter: blur(10px) saturate(120%);
-    -webkit-backdrop-filter: blur(10px) saturate(120%);
-    cursor: pointer;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.16s ease;
-    opacity: 0.98; pointer-events: auto;
-  }
-  .macos-restore-button:hover { transform: translateY(-3px); box-shadow: 0 18px 44px rgba(11,11,13,0.22), inset 0 1px 0 rgba(255,255,255,0.7); }
-  .macos-restore-button.show { display: inline-flex !important; animation: popIn 220ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-  
-  .macos-restore-button-inner { display: inline-flex; align-items: center; gap: 8px; }
-  .macos-restore-label {
-    font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 0.9rem; line-height: 1;
-    background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; color: transparent;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-
-  @keyframes popIn {
-    from { transform: scale(0.86) translateY(8px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
-  }
 </style>
