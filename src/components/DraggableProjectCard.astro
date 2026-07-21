@@ -31,6 +31,7 @@ const {
   data-url={project.url}
 >
   <div class="project-card-visual glass-card group w-full h-full relative rounded-3xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing">
+    <div class="project-card-sheen" aria-hidden="true"></div>
     <!-- Window Controls Bar (previously drag handle) -->
     <div class="window-controls-bar absolute top-0 left-0 w-full h-12 z-20 flex items-center px-4">
       <!-- Window Controls -->
@@ -94,9 +95,9 @@ const {
 
   .project-card-visual.glass-card:hover {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.56)),
-      radial-gradient(circle at 15% 0%, rgba(255, 154, 158, 0.28), transparent 42%),
-      radial-gradient(circle at 100% 100%, rgba(161, 196, 253, 0.32), transparent 45%);
+      linear-gradient(145deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.3)),
+      radial-gradient(circle at 15% 0%, rgba(255, 154, 158, 0.22), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(161, 196, 253, 0.26), transparent 45%);
     transform: translateY(-5px) scale(1.006);
     box-shadow: 
       0 28px 65px rgba(49, 58, 105, 0.24),
@@ -107,13 +108,12 @@ const {
   }
 
   /* Polished glass reflection. */
-  .project-card-visual::before {
-    content: "";
+  .project-card-sheen {
     position: absolute;
     top: -35%;
     bottom: -35%;
-    left: -55%;
-    width: 36%;
+    left: -62%;
+    width: 48%;
     z-index: 2;
     pointer-events: none;
     opacity: 0;
@@ -125,12 +125,16 @@ const {
       rgba(205, 229, 255, 0.18) 72%,
       transparent
     );
-    filter: blur(2px);
-    transform: skewX(-16deg) translateX(-180%);
+    filter: blur(1.5px);
+    transform: skewX(-16deg) translateX(-150%);
   }
 
-  .project-card-visual:hover::before {
+  .project-card-visual:hover .project-card-sheen {
     animation: macos-glass-sheen 1.15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
+  .project-card-visual.glass-card::before {
+    display: none;
   }
 
   /* Cursor-following light, kept subtle like a macOS material highlight. */
@@ -159,17 +163,10 @@ const {
   }
 
   @keyframes macos-glass-sheen {
-    0% { opacity: 0; transform: skewX(-16deg) translateX(-180%); }
+    0% { opacity: 0; transform: skewX(-16deg) translateX(-150%); }
     18% { opacity: 0.7; }
     72% { opacity: 0.48; }
-    100% { opacity: 0; transform: skewX(-16deg) translateX(520%); }
-  }
-
-  @keyframes macos-controls-sheen {
-    0% { opacity: 0; transform: skewX(-16deg) translateX(-180%); }
-    20% { opacity: 0.65; }
-    76% { opacity: 0.42; }
-    100% { opacity: 0; transform: skewX(-16deg) translateX(620%); }
+    100% { opacity: 0; transform: skewX(-16deg) translateX(360%); }
   }
 
   /* Window Controls */
@@ -200,26 +197,10 @@ const {
     transition: none;
   }
 
-  .window-controls::before {
-    content: "";
-    position: absolute;
-    inset: -50% auto -50% -75%;
-    width: 42%;
-    pointer-events: none;
-    opacity: 0;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), transparent);
-    filter: blur(1px);
-    transform: skewX(-16deg) translateX(-180%);
-  }
-
   .project-card-visual:hover .window-controls {
     background: transparent;
     border-color: transparent;
     box-shadow: none;
-  }
-
-  .project-card-visual:hover .window-controls::before {
-    animation: macos-controls-sheen 1.15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
   }
 
   .window-controls-bar {
@@ -365,9 +346,9 @@ const {
 
   :root[data-theme="dark"] .project-card-visual.glass-card:hover {
     background:
-      linear-gradient(145deg, rgba(48, 57, 96, 0.88), rgba(21, 27, 56, 0.8)),
-      radial-gradient(circle at 15% 0%, rgba(255, 126, 157, 0.28), transparent 42%),
-      radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.3), transparent 45%);
+      linear-gradient(145deg, rgba(48, 57, 96, 0.64), rgba(21, 27, 56, 0.56)),
+      radial-gradient(circle at 15% 0%, rgba(255, 126, 157, 0.22), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.24), transparent 45%);
   }
 
   :root[data-theme="dark"] .project-title {
@@ -389,13 +370,10 @@ const {
       transform: none;
     }
 
-    .project-card-visual:hover::before {
+    .project-card-visual:hover .project-card-sheen {
       animation: none;
     }
 
-    .project-card-visual:hover .window-controls::before {
-      animation: none;
-    }
   }
 </style>
 
