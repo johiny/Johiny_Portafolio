@@ -237,14 +237,14 @@ const projects = [
   }
 
   /* Responsive: apilar (sin superposición) */
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     .grid-layer {
       position: relative;
-  height: auto;
+      height: auto;
     }
     .layers-container {
       padding-bottom: 2rem;
-  height: auto; /* en móvil dejamos crecer */
+      height: auto; /* en móvil dejamos crecer */
     }
     .profile-grid {
       pointer-events: auto;
@@ -252,6 +252,10 @@ const projects = [
     }
     .profile-col, .projects-col {
       grid-column: 1 / -1;
+    }
+
+    .projects-col {
+      height: auto;
     }
   }
 </style>

@@ -114,6 +114,7 @@ function bentoSize(index: number) {
     const container = document.getElementById('wrapped-projects-container');
     const track = container?.querySelector('.projects-track');
     if (!container || !track) return;
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
     // Obtener los proyectos desde los elementos del DOM
     // Nota: draggable-project-card tiene la clase .project-item
@@ -144,30 +145,6 @@ function bentoSize(index: number) {
     console.log('Proyectos cargados:', uniqueProjects);
 
     const closedProjects = [];
-    let audioContext = null;
-
-    function playHoverSound() {
-      try {
-        if (!audioContext) {
-          audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioContext.state === 'suspended') {
-           audioContext.resume().catch(() => {});
-        }
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(500, audioContext.currentTime); 
-        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.05); 
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.015, audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.1);
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.1);
-      } catch (e) {}
-    }
     
     let currentBatch = 0;
     // Removed loadMoreCards logic variables
@@ -197,12 +174,6 @@ function bentoSize(index: number) {
 
     // Attach external listeners (sound, restore tracking)
     function setupCardEventListeners(card) {
-      card.addEventListener('mouseenter', () => { isPaused = true; playHoverSound(); });
-      card.addEventListener('mouseleave', () => {
-        const anyHover = Array.from(track.querySelectorAll('.project-item')).some(c => c.matches(':hover'));
-        if (!anyHover) isPaused = false;
-      });
-
       // Window controls logic integration
       const windowControls = card.querySelectorAll('.window-control-btn');
       windowControls.forEach(btn => {
@@ -317,7 +288,9 @@ function bentoSize(index: number) {
       });
     }
 
-    setTimeout(() => { preciseScrollLeft = container.scrollLeft; requestAnimationFrame(autoScroll); }, 100);
+    if (!isTouchDevice) {
+      setTimeout(() => { preciseScrollLeft = container.scrollLeft; requestAnimationFrame(autoScroll); }, 100);
+    }
     setTimeout(animateCardsIn, 80);
 
     // Track dragging (scroll the container)
@@ -346,14 +319,13 @@ function bentoSize(index: number) {
       container.scrollLeft = scrollLeft - walk;
     }
 
-    container.addEventListener('mousedown', startTrackDrag);
-    container.addEventListener('touchstart', startTrackDrag, { passive: true });
+    if (!isTouchDevice) {
+      container.addEventListener('mousedown', startTrackDrag);
+    }
     
     // Attach to document for full window drag tracking
     document.addEventListener('mouseup', stopTrackDrag);
-    document.addEventListener('touchend', stopTrackDrag);
     document.addEventListener('mousemove', performTrackDrag);
-    document.addEventListener('touchmove', performTrackDrag, { passive: true });
 
     initialCards.forEach(card => setupCardEventListeners(card));
   });
@@ -442,4 +414,64 @@ function bentoSize(index: number) {
   .scroll-indicators { opacity: 0.6; transition: opacity 0.3s ease; }
   .projects-infinite-wrapper:hover .scroll-indicators { opacity: 1; }
   .scroll-indicator { transition: all 0.3s ease; }
+
+  @media (max-width: 900px) {
+    .projects-infinite-wrapper {
+      height: auto;
+      overflow: visible;
+    }
+
+    .infinite-container {
+      height: auto;
+      overflow: visible;
+      cursor: default;
+      touch-action: pan-y;
+    }
+
+    .projects-track {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      height: auto;
+      width: 100%;
+      padding: 0.5rem;
+      justify-items: center;
+    }
+
+    :global(.project-item) {
+      width: auto !important;
+      height: auto !important;
+      max-width: 100%;
+      min-height: 15rem;
+      justify-self: center;
+    }
+
+    :global(.project-item[data-duplicate='true']) {
+      display: none;
+    }
+
+    :global(.project-item:nth-child(5n+1)),
+    :global(.project-item:nth-child(5n+2)),
+    :global(.project-item:nth-child(5n+3)),
+    :global(.project-item:nth-child(5n+4)),
+    :global(.project-item:nth-child(5n+5)) {
+      align-self: stretch;
+      margin-top: 0;
+    }
+
+    .scroll-indicators {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .projects-track {
+      grid-template-columns: 1fr;
+      gap: 0.875rem;
+    }
+
+    :global(.project-item) {
+      min-height: 14rem;
+    }
+  }
 </style>

@@ -266,6 +266,39 @@
     color: rgba(0,0,0,0.4);
     border-top: 1px solid rgba(0,0,0,0.05);
   }
+
+  :global(:root[data-theme="dark"]) .spotlight-container {
+    background: rgba(20, 24, 46, 0.78);
+    border-color: rgba(255, 255, 255, 0.14);
+    color: rgba(248, 250, 252, 0.94);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 20px 50px rgba(0, 0, 0, 0.46);
+  }
+
+  :global(:root[data-theme="dark"]) .spotlight-search-bar {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root[data-theme="dark"]) .search-icon {
+    color: rgba(226, 232, 240, 0.64);
+  }
+
+  :global(:root[data-theme="dark"]) #spotlight-input::placeholder,
+  :global(:root[data-theme="dark"]) .result-desc,
+  :global(:root[data-theme="dark"]) .no-results {
+    color: rgba(226, 232, 240, 0.56);
+  }
+
+  :global(:root[data-theme="dark"]) .spotlight-results {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :global(:root[data-theme="dark"]) .spotlight-footer {
+    background: rgba(0, 0, 0, 0.16);
+    color: rgba(226, 232, 240, 0.58);
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
   
   @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.98); }

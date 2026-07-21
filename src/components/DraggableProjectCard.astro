@@ -39,6 +39,7 @@ const {
         <div class="window-control-btn window-control-minimize" data-action="minimize" title="Minimize"></div>
         <div class="window-control-btn window-control-maximize" data-action="maximize" title="Maximize"></div>
       </div>
+      <span class="window-status" aria-hidden="true">•••</span>
     </div>
     
     <div class="project-item-inner flex flex-col items-center justify-center p-6 h-full pt-12 pointer-events-none">
@@ -51,6 +52,7 @@ const {
       <p class={`project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClass} pointer-events-auto`}>
         {project.description}
       </p>
+      <span class="project-open-hint" aria-hidden="true">Open project <span>↗</span></span>
     </div>
   </div>
 </draggable-project-card>
@@ -64,68 +66,123 @@ const {
     position: relative;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: none;
+    touch-action: pan-y;
     will-change: transform;
+    transition: transform 800ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   /* Visual styles */
   .project-card-visual {
-    /* Glass Effect */
-    background: rgba(255, 255, 255, 0.70);
-    backdrop-filter: blur(40px) saturate(150%);
-    -webkit-backdrop-filter: blur(40px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    /* Layered material inspired by macOS windows. */
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.46)),
+      radial-gradient(circle at 15% 0%, rgba(255, 154, 158, 0.2), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(161, 196, 253, 0.24), transparent 45%);
+    backdrop-filter: blur(28px) saturate(145%);
+    -webkit-backdrop-filter: blur(28px) saturate(145%);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 22px;
     box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.08), 
-      0 4px 12px rgba(0, 0, 0, 0.04),
-      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      0 18px 45px rgba(56, 48, 94, 0.16),
+      0 4px 10px rgba(36, 30, 65, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.88);
     
     /* Variables for spotlight */
     --mouse-x: 50%;
     --mouse-y: 50%;
   }
 
-  .project-card-visual:hover {
-    background: rgba(255, 255, 255, 0.85);
-    transform: translateY(-6px) scale(1.01);
+  .project-card-visual.glass-card:hover {
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.56)),
+      radial-gradient(circle at 15% 0%, rgba(255, 154, 158, 0.28), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(161, 196, 253, 0.32), transparent 45%);
+    transform: translateY(-5px) scale(1.006);
     box-shadow: 
-      0 20px 50px rgba(0, 0, 0, 0.12),
-      0 8px 20px rgba(0, 0, 0, 0.06),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.8);
-    border-color: rgba(255, 255, 255, 0.9);
+      0 28px 65px rgba(49, 58, 105, 0.24),
+      0 10px 24px rgba(45, 72, 118, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.98),
+      inset 0 0 0 1px rgba(190, 218, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.96);
   }
 
-  /* Spotlight Effect */
+  /* Polished glass reflection. */
+  .project-card-visual::before {
+    content: "";
+    position: absolute;
+    top: -35%;
+    bottom: -35%;
+    left: -55%;
+    width: 36%;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08) 18%,
+      rgba(255, 255, 255, 0.62) 48%,
+      rgba(205, 229, 255, 0.18) 72%,
+      transparent
+    );
+    filter: blur(2px);
+    transform: skewX(-16deg) translateX(-180%);
+  }
+
+  .project-card-visual:hover::before {
+    animation: macos-glass-sheen 1.15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
+  /* Cursor-following light, kept subtle like a macOS material highlight. */
   .project-card-visual::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(
-      600px circle at var(--mouse-x) var(--mouse-y), 
-      rgba(255, 255, 255, 0.8),
-      transparent 40%
-    );
+    background:
+      radial-gradient(
+        280px circle at var(--mouse-x) var(--mouse-y),
+        rgba(255, 255, 255, 0.48),
+        rgba(190, 220, 255, 0.12) 38%,
+        transparent 68%
+      ),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.12), transparent 42%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 260ms ease;
     z-index: 1;
     pointer-events: none;
-    mix-blend-mode: overlay;
+    mix-blend-mode: soft-light;
   }
 
   .project-card-visual:hover::after {
-    opacity: 1;
+    opacity: 0.82;
+  }
+
+  @keyframes macos-glass-sheen {
+    0% { opacity: 0; transform: skewX(-16deg) translateX(-180%); }
+    18% { opacity: 0.7; }
+    72% { opacity: 0.48; }
+    100% { opacity: 0; transform: skewX(-16deg) translateX(520%); }
+  }
+
+  @keyframes macos-controls-sheen {
+    0% { opacity: 0; transform: skewX(-16deg) translateX(-180%); }
+    20% { opacity: 0.65; }
+    76% { opacity: 0.42; }
+    100% { opacity: 0; transform: skewX(-16deg) translateX(620%); }
   }
 
   /* Window Controls */
   .window-control-btn {
     width: 12px;
     height: 12px;
+    box-sizing: border-box;
     border-radius: 50%;
     position: relative;
     border: 0.5px solid rgba(0, 0, 0, 0.1);
     cursor: pointer;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.3);
+    z-index: 1;
   }
   
   .window-control-close { background: #ff5f57; background: linear-gradient(135deg, #ff6058 0%, #ff4d4d 100%); }
@@ -133,10 +190,69 @@ const {
   .window-control-maximize { background: #28ca42; background: linear-gradient(135deg, #32d74b 0%, #28a745 100%); }
 
   .window-controls {
-    padding: 2px 4px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.05);
-    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: visible;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    transition: none;
+  }
+
+  .window-controls::before {
+    content: "";
+    position: absolute;
+    inset: -50% auto -50% -75%;
+    width: 42%;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.82), transparent);
+    filter: blur(1px);
+    transform: skewX(-16deg) translateX(-180%);
+  }
+
+  .project-card-visual:hover .window-controls {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .project-card-visual:hover .window-controls::before {
+    animation: macos-controls-sheen 1.15s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
+  .window-controls-bar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.32);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+  }
+
+  .window-status {
+    margin-left: auto;
+    color: rgba(30, 41, 59, 0.32);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+  }
+
+  .project-open-hint {
+    margin-top: 1.25rem;
+    color: rgba(30, 41, 59, 0.48);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  .project-open-hint span {
+    color: #667eea;
+    font-size: 0.85rem;
+  }
+
+  .project-card-visual:hover .project-open-hint {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   .window-control-btn:hover { transform: scale(1.1); }
@@ -160,8 +276,29 @@ const {
   .project-desc { font-weight: 500; color: rgba(0,0,0,0.55); }
 
   /* Icons */
+  .project-icon {
+    position: relative;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(238, 242, 255, 0.72));
+    border: 1px solid rgba(255, 255, 255, 0.92);
+    box-shadow:
+      0 10px 22px rgba(63, 57, 115, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      inset 0 -1px 0 rgba(99, 102, 241, 0.08);
+  }
+
+  .project-icon svg {
+    width: 3.25rem;
+    height: 3.25rem;
+    stroke-width: 2;
+  }
+
+  .project-icon svg.gradient-icon-1 { stroke: #d9485f !important; filter: drop-shadow(0 4px 7px rgba(217, 72, 95, 0.28)); }
+  .project-icon svg.gradient-icon-2 { stroke: #c26a12 !important; filter: drop-shadow(0 4px 7px rgba(194, 106, 18, 0.28)); }
+  .project-icon svg.gradient-icon-3 { stroke: #4f46b8 !important; filter: drop-shadow(0 4px 7px rgba(79, 70, 184, 0.28)); }
+  .project-icon svg.gradient-icon-4 { stroke: #1479a6 !important; filter: drop-shadow(0 4px 7px rgba(20, 121, 166, 0.28)); }
+
   .project-card-visual:hover .project-icon {
-    transform: scale(1.15) rotate(8deg);
+    transform: translateY(-2px) scale(1.08) rotate(2deg);
     background: linear-gradient(135deg, rgba(239, 246, 255, 0.8), rgba(245, 243, 255, 0.8));
     border-color: white;
   }
@@ -202,6 +339,64 @@ const {
      .project-title, .project-desc { color: rgba(255,255,255,0.92); }
      .project-desc { color: rgba(255,255,255,0.75); }
   }
+
+  @media (max-width: 900px) {
+    .project-card-visual {
+      min-height: 15rem;
+    }
+  }
+
+  :root[data-theme="light"] .project-title,
+  :root[data-theme="light"] .project-desc {
+    color: rgba(30, 41, 59, 0.92) !important;
+  }
+
+  :root[data-theme="dark"] .project-card-visual {
+    background:
+      linear-gradient(145deg, rgba(36, 43, 76, 0.8), rgba(17, 22, 47, 0.72)),
+      radial-gradient(circle at 15% 0%, rgba(255, 126, 157, 0.2), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.2), transparent 45%);
+    border-color: rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 18px 45px rgba(0, 0, 0, 0.3),
+      0 4px 10px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  }
+
+  :root[data-theme="dark"] .project-card-visual.glass-card:hover {
+    background:
+      linear-gradient(145deg, rgba(48, 57, 96, 0.88), rgba(21, 27, 56, 0.8)),
+      radial-gradient(circle at 15% 0%, rgba(255, 126, 157, 0.28), transparent 42%),
+      radial-gradient(circle at 100% 100%, rgba(96, 165, 250, 0.3), transparent 45%);
+  }
+
+  :root[data-theme="dark"] .project-title {
+    color: rgba(248, 250, 252, 0.94) !important;
+  }
+
+  :root[data-theme="dark"] .project-desc {
+    color: rgba(226, 232, 240, 0.76) !important;
+  }
+
+  :root[data-theme="dark"] .window-status,
+  :root[data-theme="dark"] .project-open-hint {
+    color: rgba(226, 232, 240, 0.58);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-card-visual:hover,
+    .project-card-visual:hover .project-icon {
+      transform: none;
+    }
+
+    .project-card-visual:hover::before {
+      animation: none;
+    }
+
+    .project-card-visual:hover .window-controls::before {
+      animation: none;
+    }
+  }
 </style>
 
 <script>
@@ -216,6 +411,12 @@ const {
       this.currentTranslateX = 0;
       this.currentTranslateY = 0;
       this.hasMoved = false;
+      this.velocityX = 0;
+      this.velocityY = 0;
+      this.lastClientX = 0;
+      this.lastClientY = 0;
+      this.lastMoveTime = 0;
+      this.momentumFrame = null;
       
       this.boundOnDragStart = this.onDragStart.bind(this);
       this.boundOnDrag = this.onDrag.bind(this);
@@ -258,6 +459,9 @@ const {
     }
 
     onDragStart(e) {
+      // Touch screens need the gesture for page scrolling, not card dragging.
+      if (e.type === 'touchstart') return;
+
       // Check if it's a mouse event and if the button is not the primary one
       if (e.type === 'mousedown' && e.button !== 0) return;
       
@@ -265,14 +469,21 @@ const {
       // @ts-ignore
       if (e.target.closest('.window-control-btn')) return;
 
+      this.cancelMomentum();
       this.isDragging = true;
       this.hasMoved = false;
+      this.style.transition = 'none';
       
       const clientX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
       const clientY = e.type === 'mousedown' ? e.clientY : e.touches[0].clientY;
 
       this.startX = clientX;
       this.startY = clientY;
+      this.lastClientX = clientX;
+      this.lastClientY = clientY;
+      this.lastMoveTime = performance.now();
+      this.velocityX = 0;
+      this.velocityY = 0;
       
       this.initialTranslateX = this.currentTranslateX;
       this.initialTranslateY = this.currentTranslateY;
@@ -299,6 +510,20 @@ const {
 
       const deltaX = clientX - this.startX;
       const deltaY = clientY - this.startY;
+      const now = performance.now();
+      const elapsed = Math.max(now - this.lastMoveTime, 1);
+      const maxPointerVelocity = 18;
+      const rawVelocityX = ((clientX - this.lastClientX) / elapsed) * 16.67;
+      const rawVelocityY = ((clientY - this.lastClientY) / elapsed) * 16.67;
+      const velocityX = Math.max(-maxPointerVelocity, Math.min(maxPointerVelocity, rawVelocityX));
+      const velocityY = Math.max(-maxPointerVelocity, Math.min(maxPointerVelocity, rawVelocityY));
+
+      // Smooth the release velocity so a single noisy pointer event does not fling the card.
+      this.velocityX = this.velocityX * 0.5 + velocityX * 0.5;
+      this.velocityY = this.velocityY * 0.5 + velocityY * 0.5;
+      this.lastClientX = clientX;
+      this.lastClientY = clientY;
+      this.lastMoveTime = now;
 
       if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
         this.hasMoved = true;
@@ -312,56 +537,90 @@ const {
 
     onDragEnd() {
       this.isDragging = false;
-      this.style.zIndex = '';
       
       document.removeEventListener('mousemove', this.boundOnDrag);
       document.removeEventListener('mouseup', this.boundOnDragEnd);
       document.removeEventListener('touchmove', this.boundOnDrag);
       document.removeEventListener('touchend', this.boundOnDragEnd);
+
+      if (this.hasMoved && (Math.abs(this.velocityX) > 0.15 || Math.abs(this.velocityY) > 0.15)) {
+        this.startMomentum();
+      } else {
+        this.style.zIndex = '';
+        this.style.transition = '';
+      }
+    }
+
+    startMomentum() {
+      const friction = 0.91;
+
+      const animate = () => {
+        this.velocityX *= friction;
+        this.velocityY *= friction;
+
+        if (Math.abs(this.velocityX) < 0.1 && Math.abs(this.velocityY) < 0.1) {
+          this.momentumFrame = null;
+          this.style.zIndex = '';
+          this.style.transition = '';
+          return;
+        }
+
+        this.currentTranslateX += this.velocityX;
+        this.currentTranslateY += this.velocityY;
+        this.style.transform = `translate(${this.currentTranslateX}px, ${this.currentTranslateY}px)`;
+        this.momentumFrame = requestAnimationFrame(animate);
+      };
+
+      this.style.zIndex = '1000';
+      this.momentumFrame = requestAnimationFrame(animate);
+    }
+
+    cancelMomentum() {
+      if (this.momentumFrame !== null) {
+        cancelAnimationFrame(this.momentumFrame);
+        this.momentumFrame = null;
+      }
+
+      this.velocityX = 0;
+      this.velocityY = 0;
     }
 
     onClick(e) {
-      console.log('onClick called');
-      console.log('target:', e.target);
-      
       if (this.hasMoved) {
-        console.log('hasMoved true, ignoring click');
         e.preventDefault();
         e.stopPropagation();
         this.hasMoved = false;
         return;
       }
 
-      // Buscar el botón en el DOM del componente
-      const controlBtn = this.querySelector('.window-control-btn');
-      console.log('controlBtn found:', controlBtn);
+      const controlBtn = e.target.closest('.window-control-btn');
       
       if (controlBtn) {
-        const isOnButton = e.target === controlBtn || controlBtn.contains(e.target);
-        console.log('isOnButton:', isOnButton);
-        
-        if (isOnButton) {
-          e.stopPropagation();
-          const action = controlBtn.getAttribute('data-action');
-          console.log('action:', action);
-          this.handleWindowAction(action);
-          return;
-        }
+        e.stopPropagation();
+        const action = controlBtn.getAttribute('data-action');
+        this.handleWindowAction(action);
+        return;
       }
 
       const url = this.getAttribute('data-url');
-      console.log('url:', url);
       if (url && url !== '#') {
         window.open(url, '_blank');
       }
     }
 
     handleWindowAction(action) {
+      this.playMacSound();
+
       if (action === 'close') {
         this.classList.add('closing');
         setTimeout(() => this.classList.add('closed-state'), 600);
       }
       else if (action === 'minimize') {
+        if (this.classList.contains('minimized-state')) {
+          this.restoreMinimized();
+          return;
+        }
+
         this.classList.add('minimizing');
         setTimeout(() => {
           this.classList.remove('minimizing');
@@ -369,6 +628,12 @@ const {
         }, 600);
       }
       else if (action === 'maximize') {
+        if (this.classList.contains('maximized-state')) {
+          this.unmaximize();
+          return;
+        }
+
+        this.classList.remove('minimized-state');
         this.classList.add('maximizing');
         setTimeout(() => {
           this.classList.remove('maximizing');
@@ -382,14 +647,22 @@ const {
       }
     }
 
+    playMacSound() {
+      const audio = new Audio('/sounds/macos-click.mp3');
+      audio.volume = 0.25;
+      audio.play().catch(() => {});
+    }
+
     restoreMinimized() {
-      this.classList.remove('minimized-state');
+      this.classList.remove('minimized-state', 'minimizing');
       this.classList.add('restoring');
       setTimeout(() => this.classList.remove('restoring'), 400);
     }
 
     unmaximize() {
       this.classList.remove('maximized-state', 'is-maximized');
+      const overlay = document.getElementById('maximize-overlay');
+      if (overlay) overlay.classList.add('hidden');
     }
   }
 

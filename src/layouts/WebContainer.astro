@@ -3,6 +3,12 @@ import 'animate.css';
 ---
 
 <div id="web-container" class="flex flex-col z-0 overflow-hidden animated-bg" style="min-height: calc(var(--vh, 1vh) * 100);">
+        <div class="abstract-canvas" aria-hidden="true">
+            <span class="paint-shape paint-shape-coral"></span>
+            <span class="paint-shape paint-shape-blue"></span>
+            <span class="paint-shape paint-shape-violet"></span>
+            <span class="paint-shape paint-shape-gold"></span>
+        </div>
         <slot></slot>
 </div>
 
@@ -36,20 +42,149 @@ import 'animate.css';
     
     /* Minimalist animated gradient background with more visible colors */
     .animated-bg {
-        background: linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb);
-        background-size: 400% 400%;
-        animation: gradient 15s ease infinite;
+        position: relative;
+        isolation: isolate;
+        background:
+            radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.9), transparent 45%),
+            linear-gradient(145deg, #f7f4ff 0%, #e6edff 46%, #fff1f3 100%);
     }
-    
-    @keyframes gradient {
-        0% {
-            background-position: 0% 50%;
+
+    .animated-bg > :not(.abstract-canvas) {
+        position: relative;
+        z-index: 1;
+    }
+
+    .abstract-canvas {
+        position: fixed;
+        inset: -12%;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+        filter: saturate(112%);
+    }
+
+    .abstract-canvas::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        opacity: 0.2;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E");
+        mix-blend-mode: soft-light;
+    }
+
+    .paint-shape {
+        position: absolute;
+        display: block;
+        filter: blur(18px);
+        opacity: 0.88;
+        will-change: transform;
+    }
+
+    .paint-shape-coral {
+        top: -8%;
+        left: -7%;
+        width: 52vw;
+        height: 58vw;
+        border-radius: 38% 62% 67% 33% / 46% 35% 65% 54%;
+        background: linear-gradient(145deg, #ff7897 0%, #ffb29c 52%, #ffd0bd 100%);
+        transform: rotate(-18deg);
+        animation: paint-drift-one 13s ease-in-out infinite alternate;
+    }
+
+    .paint-shape-blue {
+        top: -18%;
+        right: -12%;
+        width: 65vw;
+        height: 63vw;
+        border-radius: 62% 38% 35% 65% / 42% 58% 42% 58%;
+        background: linear-gradient(215deg, #4f8fff 0%, #75c7ff 48%, #c3e5ff 100%);
+        transform: rotate(12deg);
+        animation: paint-drift-two 17s ease-in-out infinite alternate;
+    }
+
+    .paint-shape-violet {
+        right: -5%;
+        bottom: -30%;
+        width: 70vw;
+        height: 68vw;
+        border-radius: 34% 66% 58% 42% / 58% 38% 62% 42%;
+        background: linear-gradient(160deg, #bd83ff 0%, #886ee8 45%, #667eea 100%);
+        transform: rotate(-14deg);
+        animation: paint-drift-three 15s ease-in-out infinite alternate;
+    }
+
+    .paint-shape-gold {
+        left: 8%;
+        bottom: -28%;
+        width: 57vw;
+        height: 55vw;
+        border-radius: 67% 33% 44% 56% / 36% 62% 38% 64%;
+        background: linear-gradient(125deg, #ffd27d 0%, #ff9f7b 50%, #ff7e9d 100%);
+        transform: rotate(22deg);
+        animation: paint-drift-four 11s ease-in-out infinite alternate;
+    }
+
+    @keyframes paint-drift-one {
+        from { transform: rotate(-18deg) translate3d(-7%, -4%, 0) scale(0.96); }
+        to { transform: rotate(-7deg) translate3d(13%, 10%, 0) scale(1.12); }
+    }
+
+    @keyframes paint-drift-two {
+        from { transform: rotate(12deg) translate3d(8%, -7%, 0) scale(1.08); }
+        to { transform: rotate(23deg) translate3d(-12%, 11%, 0) scale(0.94); }
+    }
+
+    @keyframes paint-drift-three {
+        from { transform: rotate(-14deg) translate3d(9%, 8%, 0) scale(1.04); }
+        to { transform: rotate(-25deg) translate3d(-11%, -9%, 0) scale(0.91); }
+    }
+
+    @keyframes paint-drift-four {
+        from { transform: rotate(22deg) translate3d(-8%, 7%, 0) scale(0.94); }
+        to { transform: rotate(10deg) translate3d(12%, -11%, 0) scale(1.1); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .animated-bg {
+            background: linear-gradient(145deg, #111426 0%, #171d38 48%, #211521 100%);
         }
-        50% {
-            background-position: 100% 50%;
+
+        .abstract-canvas {
+            filter: saturate(90%) brightness(0.62);
         }
-        100% {
-            background-position: 0% 50%;
+    }
+
+    :root[data-theme="light"] .animated-bg {
+        background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.9), transparent 45%), linear-gradient(145deg, #f7f4ff 0%, #e6edff 46%, #fff1f3 100%);
+    }
+
+    :root[data-theme="dark"] .animated-bg {
+        background: linear-gradient(145deg, #111426 0%, #171d38 48%, #211521 100%);
+    }
+
+    :root[data-theme="light"] .abstract-canvas {
+        filter: saturate(112%);
+    }
+
+    :root[data-theme="dark"] .abstract-canvas {
+        filter: saturate(90%) brightness(0.62);
+    }
+
+    @media (max-width: 640px) {
+        .abstract-canvas {
+            inset: -5% -45%;
+        }
+
+        .paint-shape {
+            width: 85vw;
+            height: 85vw;
+            filter: blur(14px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .paint-shape {
+            animation: none;
         }
     }
 </style>

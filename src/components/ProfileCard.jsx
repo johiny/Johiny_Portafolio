@@ -55,6 +55,13 @@ const ProfileCard = () => {
         cardStartPos.current = { ...position };
     };
 
+    const handleMouseMove = (e) => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+    };
+
     useEffect(() => {
         const handleMouseMove = (e) => {
             if (!isDragging) return;
@@ -85,6 +92,7 @@ const ProfileCard = () => {
     <div 
         className={`profile-card glass-card rounded-3xl backdrop-blur-xl border border-white/30 w-full h-full flex flex-col select-none pointer-events-auto ${mounted ? 'entered' : ''}`}
         onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
         style={{
             cursor: isDragging ? 'grabbing' : 'grab',
             transition: isDragging ? 'none' : undefined,

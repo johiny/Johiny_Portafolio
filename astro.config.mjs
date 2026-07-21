@@ -11,5 +11,10 @@ import react from "@astrojs/react";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [tailwind(),react(),compress()]
+  integrations: [tailwind(),react(),compress()],
+  vite: {
+    server: {
+      allowedHosts: ['johinyjr.tail84d477.ts.net']
+    }
+  }
 });

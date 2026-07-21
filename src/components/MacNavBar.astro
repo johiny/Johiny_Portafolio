@@ -25,12 +25,25 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   }
 }
 
-.mac-nav {
+:root[data-theme="light"] {
+  --macbar-bg: rgba(255, 255, 255, 0.3);
+  --macbar-text: rgba(0, 0, 0, 0.9);
+  --macbar-text-shadow: none;
+}
+
+:root[data-theme="dark"] {
+  --macbar-bg: rgba(12, 14, 28, 0.58);
+  --macbar-text: rgba(255, 255, 255, 0.95);
+  --macbar-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+  .mac-nav {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: var(--macbar-height);
+    height: var(--macbar-height);
+    box-sizing: border-box;
   display: flex;
   align-items: center;
   z-index: 10000;
@@ -82,6 +95,22 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
 /* Hide menu items on mobile */
 @media (max-width: 640px) {
   .mac-menu-items { display: none; }
+  .mac-nav {
+    height: calc(var(--macbar-height) + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 12px;
+  }
+
+  .mac-left,
+  .mac-right {
+    gap: 10px;
+  }
+
+  .mac-status-item[title="Control Center"] {
+    display: none;
+  }
 }
 
 .mac-right {
@@ -114,6 +143,53 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   opacity: 0.6;
 }
 
+.mac-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.mac-theme-toggle:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.mac-theme-toggle:active {
+  transform: scale(0.92);
+}
+
+.mac-theme-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.mac-theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .theme-icon-moon {
+  display: block;
+}
+
 .mac-restore-btn:hover {
   opacity: 1;
   background: rgba(0,0,0,0.08);
@@ -142,6 +218,15 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   }
   .mac-restore-btn.has-closed:hover {
     background: rgba(255,255,255,0.15);
+  }
+  .mac-theme-toggle:hover {
+    background: rgba(255,255,255,0.1);
+  }
+}
+
+@media (max-width: 640px) {
+  .mac-right {
+    gap: 10px;
   }
 }
 </style>
@@ -175,6 +260,17 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
         <path d="M3 3v5h5"/>
       </svg>
     </div>
+
+    <!-- Light/Dark mode toggle -->
+    <button class="mac-theme-toggle" id="mac-theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false" title="Switch to dark mode">
+      <svg class="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
+      </svg>
+      <svg class="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"></path>
+      </svg>
+    </button>
 
     <!-- Wifi -->
     <div class="mac-status-item" title="Wi-Fi">
@@ -235,6 +331,37 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
       restoreBtn.classList.remove('has-closed');
     }
   }
+
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    const toggle = document.getElementById('mac-theme-toggle');
+    const isDark = theme === 'dark';
+
+    if (toggle) {
+      toggle.setAttribute('aria-pressed', String(isDark));
+      toggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      toggle.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+  }
+
+  function initializeTheme() {
+    let savedTheme = null;
+    try {
+      savedTheme = localStorage.getItem('johiny-theme');
+    } catch (error) {}
+
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    setTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : systemTheme);
+
+    const toggle = document.getElementById('mac-theme-toggle');
+    toggle?.addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      setTheme(nextTheme);
+      try {
+        localStorage.setItem('johiny-theme', nextTheme);
+      } catch (error) {}
+    });
+  }
   
   // Monitor for closed cards and show restore button
   function monitorClosedCards() {
@@ -265,6 +392,7 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   });
   
   document.addEventListener('DOMContentLoaded', () => {
+    initializeTheme();
     monitorClosedCards();
     document.querySelectorAll('.project-item').forEach(card => {
       observer.observe(card, { attributes: true });

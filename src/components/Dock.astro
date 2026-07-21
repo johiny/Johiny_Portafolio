@@ -52,7 +52,7 @@
 <style>
   .dock-wrapper {
     position: fixed;
-    bottom: 1.5rem;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
     left: 0;
     right: 0;
     display: flex;
@@ -90,6 +90,46 @@
         0 0 0 1px rgba(0,0,0,0.3),
         0 10px 40px rgba(0,0,0,0.4),
         inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+  }
+
+  :root[data-theme="dark"] .dock-container {
+    background: rgba(16, 18, 34, 0.52);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.28),
+      0 10px 40px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  :root[data-theme="dark"] :global(.dock-item) {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+  }
+
+  @media (max-width: 640px) {
+    .dock-wrapper {
+      bottom: calc(0.75rem + env(safe-area-inset-bottom));
+      padding: 0 0.5rem;
+    }
+
+    .dock-container {
+      gap: 5px;
+      height: 48px;
+      max-width: 100%;
+      padding: 4px 7px;
+      border-radius: 16px;
+    }
+
+    :global(.dock-item) {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+
+    :global(.dock-item::after) {
+      display: none;
     }
   }
 

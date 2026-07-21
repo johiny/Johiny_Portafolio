@@ -17,7 +17,7 @@ const { projects } = Astro.props;
 ---
 
 <!-- Contenedor de Proyectos con Efecto Glass y Opacidad del 20% -->
-<div class="relative w-full h-full min-h-full bg-gradient-to-br from-gray-100/50 to-gray-200/50 backdrop-blur-sm">
+<div class="project-layout-surface relative w-full h-full min-h-full bg-gradient-to-br from-gray-100/50 to-gray-200/50 backdrop-blur-sm">
   <WrappedProjectsContainer {projects} />
 </div>
 
@@ -26,5 +26,9 @@ const { projects } = Astro.props;
   .backdrop-blur-sm {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+  }
+
+  :global(:root[data-theme="dark"]) .project-layout-surface {
+    background: linear-gradient(135deg, rgba(17, 24, 39, 0.42), rgba(30, 41, 59, 0.48));
   }
 </style>
