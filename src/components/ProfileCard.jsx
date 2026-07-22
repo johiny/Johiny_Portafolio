@@ -217,7 +217,6 @@ const ProfileCard = () => {
                          <div className="profile-chat-header">
                              <span className="profile-chat-status"></span>
                              <span>Johiny</span>
-                             <span className="profile-chat-caption">about me</span>
                          </div>
                          <div className="profile-chat-messages" ref={chatMessagesRef}>
                              {chatMessages.map((message, index) => (

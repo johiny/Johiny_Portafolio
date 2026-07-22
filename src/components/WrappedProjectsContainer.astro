@@ -215,9 +215,11 @@ function bentoSize(index: number) {
     let lastTimestamp = 0;
     const SCROLL_SPEED_PPS = 60; 
 
-    // Compute size of one complete set of projects for snap-back logic
+    // Keep the viewport between identical middle sets so resets happen off-screen.
     let singleSetPixelWidth = 0;
-    setTimeout(() => {
+    let loopInitialized = false;
+
+    function initializeLoop() {
         const setSize = uniqueProjects.length;
         const currentCards = Array.from(track.querySelectorAll('.project-item'));
         if (currentCards.length > setSize) {
@@ -225,30 +227,28 @@ function bentoSize(index: number) {
             const startOfSecondSetCard = currentCards[setSize];
             if (firstCard && startOfSecondSetCard) {
                 singleSetPixelWidth = startOfSecondSetCard.offsetLeft - firstCard.offsetLeft;
+                container.scrollLeft = singleSetPixelWidth;
+                preciseScrollLeft = singleSetPixelWidth;
+                loopInitialized = true;
             }
         }
-    }, 500);
+    }
 
     function checkSnap() {
-        if (!singleSetPixelWidth || singleSetPixelWidth <= 0) return;
+        if (!loopInitialized || singleSetPixelWidth <= 0) return;
         
-        if (container.scrollLeft >= singleSetPixelWidth) {
-            // Loop forward: Snap back to start
-            const diff = singleSetPixelWidth;
-            container.scrollLeft -= diff;
-            preciseScrollLeft -= diff;
-            
-            // Adjust drag context if active to prevent visual jump
+        if (container.scrollLeft >= singleSetPixelWidth * 2) {
+            container.scrollLeft -= singleSetPixelWidth;
+            preciseScrollLeft -= singleSetPixelWidth;
             if (isDragging) {
-              startX -= diff;
-              scrollLeft -= diff;
+              scrollLeft -= singleSetPixelWidth;
             }
-        } else if (container.scrollLeft <= 0) {
-           // Allow dragging backwards to loop
-           // Check if we have buffer to the left?
-           // With 4 sets, we start at 0. So physically logic is [Set1][Set2][Set3][Set4]. 
-           // If we are at 0, we can't scroll left.
-           // Ideally we should start at Set 2 (scrollLeft = singleSetPixelWidth).
+        } else if (container.scrollLeft < singleSetPixelWidth) {
+            container.scrollLeft += singleSetPixelWidth;
+            preciseScrollLeft += singleSetPixelWidth;
+            if (isDragging) {
+              scrollLeft += singleSetPixelWidth;
+            }
         }
     }
 
@@ -288,10 +288,11 @@ function bentoSize(index: number) {
       });
     }
 
-    if (!isTouchDevice) {
-      setTimeout(() => { preciseScrollLeft = container.scrollLeft; requestAnimationFrame(autoScroll); }, 100);
-    }
     setTimeout(animateCardsIn, 80);
+    setTimeout(() => {
+      initializeLoop();
+      if (!isTouchDevice && loopInitialized) requestAnimationFrame(autoScroll);
+    }, 500);
 
     // Track dragging (scroll the container)
     function startTrackDrag(e) {
@@ -374,11 +375,18 @@ function bentoSize(index: number) {
     /* Transition is handled by component or logic */
   }
 
-  :global(.project-item:nth-child(5n+1)) { align-self: flex-start; }
-  :global(.project-item:nth-child(5n+2)) { align-self: center; }
-  :global(.project-item:nth-child(5n+3)) { align-self: flex-end; }
-  :global(.project-item:nth-child(5n+4)) { align-self: flex-start; margin-top: 2rem; }
-  :global(.project-item:nth-child(5n+5)) { align-self: center; margin-top: 1rem; }
+  :global(.project-item[data-index="0"]),
+  :global(.project-item[data-index="5"]),
+  :global(.project-item[data-index="10"]) { align-self: flex-start; }
+  :global(.project-item[data-index="1"]),
+  :global(.project-item[data-index="6"]),
+  :global(.project-item[data-index="11"]) { align-self: center; }
+  :global(.project-item[data-index="2"]),
+  :global(.project-item[data-index="7"]) { align-self: flex-end; }
+  :global(.project-item[data-index="3"]),
+  :global(.project-item[data-index="8"]) { align-self: flex-start; margin-top: 2rem; }
+  :global(.project-item[data-index="4"]),
+  :global(.project-item[data-index="9"]) { align-self: center; margin-top: 1rem; }
 
   :global(.project-item.preload) {
     transform: translateY(-32px) scale(0.995);
@@ -450,11 +458,7 @@ function bentoSize(index: number) {
       display: none;
     }
 
-    :global(.project-item:nth-child(5n+1)),
-    :global(.project-item:nth-child(5n+2)),
-    :global(.project-item:nth-child(5n+3)),
-    :global(.project-item:nth-child(5n+4)),
-    :global(.project-item:nth-child(5n+5)) {
+    :global(.project-item[data-index]) {
       align-self: stretch;
       margin-top: 0;
     }
