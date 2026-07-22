@@ -5,14 +5,14 @@
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
-      <input type="text" id="spotlight-input" placeholder="Search Projects..." autocomplete="off" />
+      <input type="text" id="spotlight-input" placeholder="Search Johiny's portfolio..." autocomplete="off" aria-label="Search Johiny's portfolio" aria-controls="spotlight-results" />
     </div>
-    <div id="spotlight-results" class="spotlight-results hidden">
+    <div id="spotlight-results" class="spotlight-results hidden" role="listbox" aria-label="Spotlight results">
       <!-- Results injected here -->
     </div>
     <div class="spotlight-footer">
-        <span>Cmd + Space to open</span>
-        <span>Esc to close</span>
+        <span><kbd>⌘</kbd><kbd>↵</kbd> to open</span>
+        <span><kbd>↑</kbd><kbd>↓</kbd> navigate <kbd>Esc</kbd> close</span>
     </div>
   </div>
 </div>
@@ -21,16 +21,76 @@
   const overlay = document.getElementById('spotlight-overlay');
   const input = document.getElementById('spotlight-input');
   const resultsContainer = document.getElementById('spotlight-results');
+  let activeResults = [];
+  let selectedIndex = 0;
 
-  // Toggle spotlight with Cmd/Ctrl + K or Cmd/Ctrl + Space
+  const commands = [
+    {
+      title: 'Open profile',
+      description: 'Meet Johiny and start a conversation',
+      keywords: 'about profile chat johiny',
+      icon: 'person',
+      run: () => scrollToElement('.profile-card')
+    },
+    {
+      title: 'Browse projects',
+      description: 'Explore the project collection',
+      keywords: 'projects work portfolio timeline',
+      icon: 'folder',
+      run: () => scrollToElement('.projects-grid')
+    },
+    {
+      title: 'Toggle appearance',
+      description: 'Switch between light and dark mode',
+      keywords: 'theme dark light appearance',
+      icon: 'theme',
+      run: () => document.getElementById('mac-theme-toggle')?.click()
+    },
+    {
+      title: 'Restore windows',
+      description: 'Bring back closed project windows',
+      keywords: 'restore windows closed projects',
+      icon: 'restore',
+      run: () => window.restoreClosedCards?.()
+    },
+    {
+      title: 'Open GitHub',
+      description: 'View Johiny Dev on GitHub',
+      keywords: 'github source code repository',
+      icon: 'code',
+      run: () => window.open('https://github.com/johiny', '_blank', 'noopener,noreferrer')
+    },
+    {
+      title: 'Send an email',
+      description: 'Start a conversation with Johiny',
+      keywords: 'email contact message',
+      icon: 'mail',
+      run: () => { window.location.href = 'mailto:johinymazzo@gmail.com'; }
+    }
+  ];
+
+  // Toggle Spotlight with Cmd/Ctrl + K or Cmd/Ctrl + Space.
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === ' ')) {
       e.preventDefault();
       toggleSpotlight();
     }
+    if (!overlay.classList.contains('hidden') && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+      e.preventDefault();
+      moveSelection(e.key === 'ArrowDown' ? 1 : -1);
+    }
+    if (!overlay.classList.contains('hidden') && e.key === 'Enter') {
+      e.preventDefault();
+      runSelection();
+    }
     if (e.key === 'Escape' && !overlay.classList.contains('hidden')) {
       closeSpotlight();
     }
+  });
+
+  document.addEventListener('open-spotlight', openSpotlight);
+  document.querySelectorAll('[data-spotlight-trigger]').forEach(trigger => {
+    trigger.addEventListener('click', openSpotlight);
   });
 
   // Close when clicking outside
@@ -51,8 +111,8 @@
   function openSpotlight() {
     overlay.classList.remove('hidden');
     input.value = '';
-    resultsContainer.innerHTML = '';
-    resultsContainer.classList.add('hidden');
+    selectedIndex = 0;
+    renderResults(getResults(''));
     input.focus();
   }
 
@@ -60,70 +120,118 @@
     overlay.classList.add('hidden');
   }
 
-  // Live search logic
-  input.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    if (query.length === 0) {
-        resultsContainer.classList.add('hidden');
-        return;
-    }
+  function scrollToElement(selector) {
+    document.querySelector(selector)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
-    // Grab projects from the DOM (assuming .project-item elements exist)
-    // We can also query the array if we had it, but DOM scraping is easier for this component isolation
-    const projectCards = document.querySelectorAll('.project-item');
-    const projects = Array.from(projectCards).map(card => {
-        return {
-           title: card.querySelector('.project-title')?.innerText || '',
-           desc: card.querySelector('.project-desc')?.innerText || '',
-           url: card.href,
-           element: card
-        };
-    });
-
-    // Simple fuzzy filtering
-    // Use a Set to avoid duplicates if cards are cloned for infinite scroll
+  function getProjects() {
     const seenTitles = new Set();
-    const matches = projects.filter(p => {
-        const match = p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query);
-        if (match && !seenTitles.has(p.title)) {
-            seenTitles.add(p.title);
-            return true;
-        }
-        return false;
-    });
+    return Array.from(document.querySelectorAll('.project-item')).reduce((projects, card) => {
+      const title = card.querySelector('.project-title')?.textContent?.trim() || '';
+      if (!title || seenTitles.has(title)) return projects;
 
-    renderResults(matches);
+      seenTitles.add(title);
+      projects.push({
+        title,
+        description: card.querySelector('.project-desc')?.textContent?.trim() || 'Open project',
+        keywords: `${title} ${card.querySelector('.project-desc')?.textContent || ''}`,
+        icon: 'folder',
+        run: () => window.open(card.dataset.url, '_blank', 'noopener,noreferrer')
+      });
+      return projects;
+    }, []);
+  }
+
+  function getResults(query) {
+    const normalizedQuery = query.trim().toLowerCase();
+    const results = [...commands, ...getProjects()];
+    if (!normalizedQuery) return results;
+
+    return results.filter(result =>
+      `${result.title} ${result.description} ${result.keywords}`.toLowerCase().includes(normalizedQuery)
+    );
+  }
+
+  input.addEventListener('input', (e) => {
+    selectedIndex = 0;
+    renderResults(getResults(e.target.value));
   });
 
-  function renderResults(matches) {
-    if (matches.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-results">No projects found</div>';
+  function moveSelection(direction) {
+    if (!activeResults.length) return;
+    selectedIndex = (selectedIndex + direction + activeResults.length) % activeResults.length;
+    renderResults(activeResults, false);
+  }
+
+  function runSelection() {
+    const result = activeResults[selectedIndex];
+    if (!result) return;
+    closeSpotlight();
+    result.run();
+  }
+
+  function iconPath(icon) {
+    const paths = {
+      folder: '<path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>',
+      person: '<circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0114 0"/>',
+      theme: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3l1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3l1.42-1.42"/>',
+      restore: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+      code: '<path d="M8 9l-4 3 4 3m8-6l4 3-4 3m-3-8l-2 10"/>',
+      mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>'
+    };
+    return paths[icon] || paths.folder;
+  }
+
+  function renderResults(results, updateState = true) {
+    if (updateState) activeResults = results.slice(0, 8);
+    resultsContainer.replaceChildren();
+
+    if (!activeResults.length) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.textContent = 'No matching commands or projects';
+        resultsContainer.append(noResults);
         resultsContainer.classList.remove('hidden');
         return;
     }
 
-    const html = matches.slice(0, 5).map(m => `
-        <a href="${m.url}" target="_blank" class="spotlight-result-item">
-            <div class="result-icon">
-               <svg viewBox="0 0 24 24" fill="none" class="w-5 h-5" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-               </svg>
-            </div>
-            <div class="result-info">
-                <div class="result-title">${m.title}</div>
-                <div class="result-desc">${m.desc.substring(0, 40)}${m.desc.length > 40 ? '...' : ''}</div>
-            </div>
-            <div class="result-enter">↩</div>
-        </a>
-    `).join('');
+    activeResults.forEach((result, index) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = `spotlight-result-item${index === selectedIndex ? ' selected' : ''}`;
+        item.setAttribute('role', 'option');
+        item.setAttribute('aria-selected', String(index === selectedIndex));
+        item.addEventListener('click', () => {
+          selectedIndex = index;
+          runSelection();
+        });
 
-    resultsContainer.innerHTML = html;
+        const icon = document.createElement('div');
+        icon.className = 'result-icon';
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${iconPath(result.icon)}</svg>`;
+
+        const info = document.createElement('div');
+        info.className = 'result-info';
+        const title = document.createElement('div');
+        title.className = 'result-title';
+        title.textContent = result.title;
+        const description = document.createElement('div');
+        description.className = 'result-desc';
+        description.textContent = result.description;
+        info.append(title, description);
+
+        const enter = document.createElement('div');
+        enter.className = 'result-enter';
+        enter.textContent = index === selectedIndex ? '↵' : '';
+        item.append(icon, info, enter);
+        resultsContainer.append(item);
+    });
     resultsContainer.classList.remove('hidden');
   }
 
 </script>
 
-<style>
+<style is:global>
   .spotlight-overlay {
     position: fixed;
     inset: 0;
@@ -131,9 +239,9 @@
     background: rgba(0, 0, 0, 0.2);
     backdrop-filter: blur(2px);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: center;
-    padding-top: 25vh;
+    padding: 2rem 1rem;
     animation: fadeIn 0.2s ease-out;
   }
   
@@ -142,8 +250,8 @@
   }
 
   .spotlight-container {
-    width: 600px;
-    max-width: 90vw;
+    width: min(640px, 100%);
+    max-height: min(620px, calc(100vh - 7rem));
     background: rgba(255, 255, 255, 0.65);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -168,11 +276,13 @@
   .spotlight-search-bar {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
+    flex: 0 0 auto;
+    padding: 17px 20px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
   
   .search-icon {
+    flex: 0 0 auto;
     width: 24px;
     height: 24px;
     color: rgba(0, 0, 0, 0.4);
@@ -194,6 +304,8 @@
   }
 
   .spotlight-results {
+    min-height: 0;
+    overflow-y: auto;
     padding: 8px;
     border-top: 1px solid rgba(0,0,0,0.05);
   }
@@ -211,45 +323,79 @@
   .spotlight-result-item {
     display: flex;
     align-items: center;
-    padding: 10px 14px;
+    width: 100%;
+    min-height: 58px;
+    padding: 8px 12px;
+    border: 0;
     border-radius: 8px;
+    background: transparent;
     text-decoration: none;
     color: inherit;
+    font: inherit;
+    text-align: left;
     transition: background 0.15s;
-    cursor: default;
+    cursor: pointer;
   }
   
   .spotlight-result-item:hover, .spotlight-result-item:focus {
     background: #007AFF; /* Mac Blue */
     color: white;
   }
+
+  .spotlight-result-item.selected {
+    background: #007AFF;
+    color: white;
+  }
   
   .result-icon {
-    width: 32px;
-    height: 32px;
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 12px;
+    border-radius: 9px;
+    background: rgba(0, 122, 255, 0.1);
+    color: #087ef5;
+  }
+
+  .result-icon svg {
+    width: 20px;
+    height: 20px;
   }
   
   .spotlight-result-item:hover .search-icon, 
-  .spotlight-result-item:hover .result-desc {
+  .spotlight-result-item:hover .result-desc,
+  .spotlight-result-item.selected .result-desc {
     color: rgba(255,255,255,0.9);
+  }
+
+  .spotlight-result-item:hover .result-icon,
+  .spotlight-result-item.selected .result-icon {
+    color: white;
+    background: rgba(255, 255, 255, 0.18);
   }
   
   .result-info {
     flex: 1;
+    min-width: 0;
   }
   
   .result-title {
     font-weight: 600;
     font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .result-desc {
     font-size: 12px;
     color: rgba(0,0,0,0.5);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .result-enter {
@@ -258,6 +404,7 @@
   }
 
   .spotlight-footer {
+    flex: 0 0 auto;
     display: flex;
     justify-content: space-between;
     padding: 6px 16px;
@@ -267,7 +414,15 @@
     border-top: 1px solid rgba(0,0,0,0.05);
   }
 
-  :global(:root[data-theme="dark"]) .spotlight-container {
+  .spotlight-footer kbd {
+    padding: 1px 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.08);
+    font: inherit;
+    font-size: 9px;
+  }
+
+  :root[data-theme="dark"] .spotlight-container {
     background: rgba(20, 24, 46, 0.78);
     border-color: rgba(255, 255, 255, 0.14);
     color: rgba(248, 250, 252, 0.94);
@@ -276,28 +431,114 @@
       0 20px 50px rgba(0, 0, 0, 0.46);
   }
 
-  :global(:root[data-theme="dark"]) .spotlight-search-bar {
+  :root[data-theme="dark"] .spotlight-search-bar {
     border-bottom-color: rgba(255, 255, 255, 0.08);
   }
 
-  :global(:root[data-theme="dark"]) .search-icon {
+  :root[data-theme="dark"] .search-icon {
     color: rgba(226, 232, 240, 0.64);
   }
 
-  :global(:root[data-theme="dark"]) #spotlight-input::placeholder,
-  :global(:root[data-theme="dark"]) .result-desc,
-  :global(:root[data-theme="dark"]) .no-results {
+  :root[data-theme="dark"] #spotlight-input::placeholder,
+  :root[data-theme="dark"] .result-desc,
+  :root[data-theme="dark"] .no-results {
     color: rgba(226, 232, 240, 0.56);
   }
 
-  :global(:root[data-theme="dark"]) .spotlight-results {
+  :root[data-theme="dark"] .spotlight-results {
     border-top-color: rgba(255, 255, 255, 0.08);
   }
 
-  :global(:root[data-theme="dark"]) .spotlight-footer {
+  :root[data-theme="dark"] .spotlight-footer {
     background: rgba(0, 0, 0, 0.16);
     color: rgba(226, 232, 240, 0.58);
     border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  :root[data-theme="dark"] .spotlight-footer kbd {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  :root[data-theme="dark"] .result-icon {
+    color: #7db8ff;
+    background: rgba(80, 148, 255, 0.14);
+  }
+
+  :root[data-theme="dark"] .spotlight-result-item.selected .result-desc {
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  :root[data-theme="dark"] .spotlight-result-item.selected .result-icon {
+    color: white;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  :root[data-theme="light"] .spotlight-overlay {
+    background: rgba(15, 23, 42, 0.12);
+  }
+
+  :root[data-theme="light"] .spotlight-container {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(255, 255, 255, 0.72);
+    color: rgba(15, 23, 42, 0.94);
+  }
+
+  :root[data-theme="light"] .spotlight-search-bar {
+    border-bottom-color: rgba(15, 23, 42, 0.08);
+  }
+
+  :root[data-theme="light"] .search-icon {
+    color: rgba(15, 23, 42, 0.58);
+  }
+
+  :root[data-theme="light"] #spotlight-input::placeholder,
+  :root[data-theme="light"] .result-desc,
+  :root[data-theme="light"] .no-results {
+    color: rgba(15, 23, 42, 0.56);
+  }
+
+  :root[data-theme="light"] .spotlight-results {
+    border-top-color: rgba(15, 23, 42, 0.08);
+  }
+
+  :root[data-theme="light"] .spotlight-footer {
+    background: rgba(255, 255, 255, 0.34);
+    color: rgba(15, 23, 42, 0.56);
+    border-top-color: rgba(15, 23, 42, 0.08);
+  }
+
+  @media (max-width: 640px) {
+    .spotlight-overlay {
+      align-items: center;
+      padding: max(2.5rem, env(safe-area-inset-top)) 0.75rem;
+    }
+
+    .spotlight-container {
+      max-height: calc(100dvh - 5rem);
+      border-radius: 14px;
+    }
+
+    .spotlight-search-bar {
+      padding: 14px 15px;
+    }
+
+    #spotlight-input {
+      min-width: 0;
+      font-size: 18px;
+    }
+
+    .spotlight-result-item {
+      min-height: 56px;
+      padding: 8px 10px;
+    }
+
+    .spotlight-footer {
+      justify-content: center;
+    }
+
+    .spotlight-footer span:first-child {
+      display: none;
+    }
   }
   
   @keyframes fadeIn {

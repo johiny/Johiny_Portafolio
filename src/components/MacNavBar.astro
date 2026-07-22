@@ -92,9 +92,66 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
   opacity: 0.6;
 }
 
+.mac-spotlight-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.74;
+  transition: background 180ms ease, opacity 180ms ease, transform 180ms ease;
+}
+
+.mac-spotlight-trigger:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.mac-spotlight-trigger:active {
+  transform: scale(0.97);
+}
+
+.mac-spotlight-trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.mac-spotlight-trigger svg {
+  width: 14px;
+  height: 14px;
+}
+
+.mac-spotlight-trigger kbd {
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+:root[data-theme="dark"] .mac-spotlight-trigger {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="dark"] .mac-spotlight-trigger:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme="dark"] .mac-spotlight-trigger kbd {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 /* Hide menu items on mobile */
 @media (max-width: 640px) {
   .mac-menu-items { display: none; }
+  .mac-spotlight-trigger span,
+  .mac-spotlight-trigger kbd { display: none; }
+  .mac-spotlight-trigger { padding: 4px; }
   .mac-nav {
     height: calc(var(--macbar-height) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
@@ -241,6 +298,14 @@ const { linkedin, github, x } = Astro.props; // Props are now unused here but ke
     </div>
     
     <div class="mac-app-name">Johiny</div>
+
+    <button class="mac-spotlight-trigger" type="button" data-spotlight-trigger aria-label="Open Spotlight" title="Search portfolio (⌘K)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <span>Search</span>
+      <kbd>⌘K</kbd>
+    </button>
     
     <div class="mac-menu-items">
       <div class="mac-menu-item">File</div>
