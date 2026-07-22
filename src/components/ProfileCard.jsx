@@ -1,14 +1,57 @@
-import johiny_photo from '../media/johan_laravel.jpg'
+import profileNeutral from '../media/profile-speaking-npc-happy-neutral.png';
+import profileMouthClosed from '../media/profile-speaking-npc-happy-mouth-closed.png';
+import profileMouthSlight from '../media/profile-speaking-npc-happy-mouth-slight.png';
+import profileMouthOpen from '../media/profile-speaking-npc-happy-mouth-open.png';
+import profileBlink from '../media/profile-speaking-npc-happy-blink.png';
 import ChatControl from './ChatControl.jsx';
 import "./ProfileCardStyles.css"
 import Typewriter from 'typewriter-effect';
-import { faForward, faBackward, faForwardFast  } from '@fortawesome/free-solid-svg-icons';
+import { faForward, faBackward, faForwardFast, faRotateLeft } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect, useRef } from 'react';
 
+const initialChat = {
+    message: "Hi, I'm Johiny. What would you like to know about my work?",
+    options: [
+        { key: 'experience', label: 'Your experience' },
+        { key: 'projects', label: 'What you build' },
+        { key: 'approach', label: 'How you work' }
+    ]
+};
+
+const chatReplies = {
+    experience: {
+        answer: "I've spent <strong class=\"chat-accent-coral\">five years</strong> turning complex ideas into clear, useful digital products. I work across <strong class=\"chat-accent-blue\">JavaScript, React, Astro, and Laravel</strong>, plus data-focused tools.",
+        options: [
+            { key: 'projects', label: 'Show me your projects' },
+            { key: 'approach', label: 'Tell me about your approach' }
+        ]
+    },
+    projects: {
+        answer: "I build products that <strong class=\"chat-accent-gold\">return time to people</strong>: inventory platforms, project management tools, interactive experiences, and thoughtful interfaces that make complexity feel simple.",
+        options: [
+            { key: 'experience', label: 'Tell me about your experience' },
+            { key: 'approach', label: 'How do you work?' }
+        ]
+    },
+    approach: {
+        answer: "My process starts with <strong class=\"chat-accent-violet\">curiosity</strong>, then moves through structure, iteration, and care. I treat every line of code as an opportunity to remove friction and make the final experience feel inevitable.",
+        options: [
+            { key: 'projects', label: 'See what you have built' },
+            { key: 'experience', label: 'Explore your experience' }
+        ]
+    }
+};
+
 const ProfileCard = () => {
-    const [profileImg, setprofileImg] = useState(johiny_photo)
     const [typeSpeed, setTypeSpeed] = useState(60)
     const [mounted, setMounted] = useState(false);
+    const [profileFrame, setProfileFrame] = useState(profileNeutral);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [chatMessages, setChatMessages] = useState([{ role: 'assistant', text: initialChat.message }]);
+    const [chatOptions, setChatOptions] = useState(initialChat.options);
+    const [chatVersion, setChatVersion] = useState(0);
+    const chatMessagesRef = useRef(null);
+    const speakingFrames = [profileMouthClosed, profileMouthSlight, profileMouthOpen, profileMouthSlight, profileBlink];
     
     // Typewriter ref to control speed dynamically
     const typewriterRef = useRef(null);
@@ -41,6 +84,29 @@ const ProfileCard = () => {
         return () => clearTimeout(t);
     }, []);
 
+    useEffect(() => {
+        if (!isSpeaking) {
+            setProfileFrame(profileNeutral);
+            return undefined;
+        }
+
+        let frameIndex = 0;
+        setProfileFrame(speakingFrames[frameIndex]);
+        const frameTimer = setInterval(() => {
+            frameIndex = (frameIndex + 1) % speakingFrames.length;
+            setProfileFrame(speakingFrames[frameIndex]);
+        }, 120);
+
+        return () => clearInterval(frameTimer);
+    }, [isSpeaking]);
+
+    useEffect(() => {
+        const messagesElement = chatMessagesRef.current;
+        if (messagesElement) {
+            messagesElement.scrollTop = messagesElement.scrollHeight;
+        }
+    }, [chatMessages, chatVersion]);
+
     // Drag event handlers
     const handleMouseDown = (e) => {
         // Prevent drag when clicking on interactive elements
@@ -61,6 +127,31 @@ const ProfileCard = () => {
         card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
         card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
     };
+
+    const handleChatChoice = (key) => {
+        const reply = chatReplies[key];
+        if (!reply) return;
+
+        const option = chatOptions.find((item) => item.key === key);
+        setChatMessages((messages) => [
+            ...messages,
+            { role: 'user', text: option?.label || key },
+            { role: 'assistant', text: reply.answer }
+        ]);
+        setChatOptions(reply.options);
+        setChatVersion((version) => version + 1);
+    };
+
+    const resetChat = () => {
+        setChatMessages([{ role: 'assistant', text: initialChat.message }]);
+        setChatOptions(initialChat.options);
+        setChatVersion((version) => version + 1);
+    };
+
+    const lastAssistantIndex = chatMessages.reduce(
+        (lastIndex, message, index) => message.role === 'assistant' ? index : lastIndex,
+        -1
+    );
 
     useEffect(() => {
         const handleMouseMove = (e) => {
@@ -111,7 +202,7 @@ const ProfileCard = () => {
                 <div className="mb-4">
                     <div className="w-32 h-32 border-gradient-1">
                         <img
-                            src={profileImg.src}
+                            src={profileFrame.src}
                             width={128}
                             height={128}
                             loading="lazy"
@@ -122,28 +213,49 @@ const ProfileCard = () => {
                     </div>
                 </div>
                 <div className="flex flex-col flex-grow w-full">
-                    <h2 id="myDescription" className="text-base profile-desc-text md:text-lg p-3 rounded-lg backdrop-blur-sm flex-grow">
-                        <Typewriter
-                            key={typeSpeed} // Restart typing if speed changes (simplest way to apply new speed globally)
-                            options={{
-                                delay: typeSpeed,
-                                cursor: '|',
-                                cursorClassName: 'text-[#ff9a9e]'
-                            }}
-                            onInit={(typewriter) => {
-                                typewriterRef.current = typewriter;
-                                typewriter
-                                    .typeString('I grew up with the internet, learning its language before I could master my own. Today, with five years of professional experience, I see every line of code as an <strong style="color: #ff9a9e;">opportunity</strong> to simplify the world. I don’t just write code; I design <span style="background: linear-gradient(135deg, #ff9a9e, #a1c4fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold;">transformative experiences</span> that break barriers. By constantly refining my craft and evolving my tech stack, I aim to build seamless, intuitive tools that return to humanity its most precious gift—<strong style="color: #a1c4fd;">time</strong>—empowering people to dream bigger and move faster.')
-                                    .start();
-                            }}
-                        />
-                    </h2>
-                    <div className="flex justify-center mt-14 space-x-2">
-                        <ChatControl text="" icon={faBackward} action={() => setTypeSpeed((value) => value <= 140 ? value + 20 : value)} id="backward_button" size="sm"/>
-                        <ChatControl text="" icon={faForward} reverse={true} id="forward_button" action={() => setTypeSpeed((value) => value >= 0 ? value - 20: value)} size="sm"/>
-                        <ChatControl text="" icon={faForwardFast} reverse={true} id="skip_button" action={() => setTypeSpeed(1)} size="sm"/>
-                    </div>
-                </div>
+                     <div id="myDescription" className="profile-chat flex-grow" aria-live="polite">
+                         <div className="profile-chat-header">
+                             <span className="profile-chat-status"></span>
+                             <span>Johiny</span>
+                             <span className="profile-chat-caption">about me</span>
+                         </div>
+                         <div className="profile-chat-messages" ref={chatMessagesRef}>
+                             {chatMessages.map((message, index) => (
+                                 <div key={`${chatVersion}-${index}`} className={`chat-bubble chat-bubble-${message.role}`}>
+                                     {message.role === 'assistant' && index === lastAssistantIndex ? (
+                                         <Typewriter
+                                             key={`${typeSpeed}-${chatVersion}`}
+                                             options={{ delay: typeSpeed, cursor: '|', cursorClassName: 'text-[#ff9a9e]' }}
+                                             onInit={(typewriter) => {
+                                                 typewriterRef.current = typewriter;
+                                                 setIsSpeaking(true);
+                                                 typewriter
+                                                     .typeString(message.text)
+                                                     .callFunction(() => setIsSpeaking(false))
+                                                     .start();
+                                             }}
+                                         />
+                                     ) : message.role === 'assistant' ? (
+                                         <span dangerouslySetInnerHTML={{ __html: message.text }} />
+                                     ) : message.text}
+                                 </div>
+                             ))}
+                              <div className="profile-chat-options">
+                                  {chatOptions.map((option) => (
+                                      <button key={option.key} type="button" onClick={() => handleChatChoice(option.key)}>
+                                          {option.label}
+                                      </button>
+                                  ))}
+                              </div>
+                              <div className="profile-chat-playback">
+                                  <ChatControl text="" icon={faBackward} action={() => setTypeSpeed((value) => value <= 140 ? value + 20 : value)} id="backward_button" title="Slower" size="sm"/>
+                                  <ChatControl text="" icon={faForward} reverse={true} id="forward_button" action={() => setTypeSpeed((value) => value >= 0 ? value - 20: value)} title="Faster" size="sm"/>
+                                  <ChatControl text="" icon={faForwardFast} reverse={true} id="skip_button" action={() => setTypeSpeed(1)} title="Skip typing" size="sm"/>
+                                  <ChatControl text="" icon={faRotateLeft} id="reset_chat_button" action={resetChat} title="Start over" size="sm"/>
+                              </div>
+                          </div>
+                      </div>
+                 </div>
             </div>
         </div>
     )

@@ -325,3 +325,198 @@
 :root[data-theme="dark"] .profile-desc-text {
   color: rgba(241, 245, 249, 0.92) !important;
 }
+
+.profile-chat {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  text-align: left;
+}
+
+.profile-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+  color: rgba(30, 41, 59, 0.72);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.profile-chat-status {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.14), 0 0 10px rgba(52, 211, 153, 0.42);
+}
+
+.profile-chat-caption {
+  margin-left: auto;
+  color: rgba(30, 41, 59, 0.38);
+  font-size: 0.57rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.profile-chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1 1 auto;
+  min-height: 22rem;
+  max-height: none;
+  overflow-y: auto;
+  padding: 0.1rem 0.2rem 0.4rem 0.1rem;
+  scrollbar-width: thin;
+}
+
+.chat-bubble {
+  width: fit-content;
+  max-width: 94%;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 0.95rem;
+  font-size: clamp(0.88rem, 2vw, 1.02rem);
+  line-height: 1.5;
+}
+
+.chat-bubble strong {
+  font-weight: 750;
+}
+
+.chat-accent-coral {
+  color: #e05268;
+}
+
+.chat-accent-blue {
+  color: #3f72c9;
+}
+
+.chat-accent-violet {
+  color: #7154c8;
+}
+
+.chat-accent-gold {
+  color: #c17b24;
+}
+
+.chat-bubble-assistant {
+  align-self: flex-start;
+  color: rgba(30, 41, 59, 0.88);
+  background: rgba(255, 255, 255, 0.42);
+  border-top-left-radius: 0.35rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.54);
+}
+
+.chat-bubble-user {
+  align-self: flex-end;
+  color: white;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.84), rgba(118, 75, 162, 0.82));
+  border-color: rgba(255, 255, 255, 0.24);
+  border-bottom-right-radius: 0.35rem;
+  box-shadow: 0 6px 14px rgba(79, 70, 184, 0.18);
+}
+
+.profile-chat-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.5rem;
+}
+
+ .profile-chat-options button {
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  border-radius: 999px;
+  color: rgba(67, 56, 140, 0.88);
+  background: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.profile-chat-options button {
+  padding: 0.5rem 0.7rem;
+}
+
+.profile-chat-options button:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.66);
+  border-color: rgba(255, 255, 255, 0.92);
+}
+
+.profile-chat-playback {
+  display: flex;
+  justify-content: center;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+:root[data-theme="dark"] .profile-chat-header,
+:root[data-theme="dark"] .profile-chat-caption {
+  color: rgba(226, 232, 240, 0.68);
+}
+
+:root[data-theme="dark"] .profile-chat-caption {
+  color: rgba(226, 232, 240, 0.42);
+}
+
+:root[data-theme="dark"] .chat-bubble-assistant {
+  color: rgba(241, 245, 249, 0.9);
+  background: rgba(30, 41, 72, 0.58);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+:root[data-theme="dark"] .chat-accent-coral {
+  color: #ff9aab;
+}
+
+:root[data-theme="dark"] .chat-accent-blue {
+  color: #9bc5ff;
+}
+
+:root[data-theme="dark"] .chat-accent-violet {
+  color: #c5b5ff;
+}
+
+:root[data-theme="dark"] .chat-accent-gold {
+  color: #ffd28a;
+}
+
+:root[data-theme="dark"] .profile-chat-options button {
+  color: rgba(224, 231, 255, 0.9);
+  background: rgba(25, 31, 68, 0.56);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme="dark"] .profile-chat-playback {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 640px) {
+  .profile-chat-header {
+    margin-bottom: 0.55rem;
+  }
+
+  .profile-chat-messages {
+    min-height: 18rem;
+  }
+
+  .chat-bubble {
+    max-width: 98%;
+    font-size: 0.86rem;
+  }
+
+  .profile-chat-options button {
+    font-size: 0.64rem;
+  }
+}
