@@ -131,10 +131,11 @@
       if (!title || seenTitles.has(title)) return projects;
 
       seenTitles.add(title);
+      const tags = card.getAttribute('data-tags') || '';
       projects.push({
         title,
         description: card.querySelector('.project-desc')?.textContent?.trim() || 'Open project',
-        keywords: `${title} ${card.querySelector('.project-desc')?.textContent || ''}`,
+        keywords: `${title} ${card.querySelector('.project-desc')?.textContent || ''} ${tags}`,
         icon: 'folder',
         run: () => window.open(card.dataset.url, '_blank', 'noopener,noreferrer')
       });

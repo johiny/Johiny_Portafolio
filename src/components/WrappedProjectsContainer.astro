@@ -1,6 +1,7 @@
 ---
 // src/components/WrappedProjectsContainer.astro
 import DraggableProjectCard from './DraggableProjectCard.astro';
+import TechFilterBar from './TechFilterBar.astro';
 
 interface Props {
   projects: Array<{ 
@@ -8,10 +9,15 @@ interface Props {
     title: string; 
     description: string; 
     url: string;
+    tags?: string[];
   }>;
 }
 
 const { projects } = Astro.props;
+
+const allTags = [...new Set(projects.flatMap((p) => p.tags || []))].sort((a, b) =>
+  a.localeCompare(b)
+);
 
 // Definir diferentes iconos minimalistas para cada proyecto con colores del gradiente macOS
 const projectIcons = [
@@ -75,6 +81,7 @@ function bentoSize(index: number) {
 
 <!-- Carrusel horizontal infinito -->
 <div class="projects-infinite-wrapper relative h-full w-full overflow-hidden">
+  <TechFilterBar tags={allTags} />
   <div id="wrapped-projects-container" class="infinite-container scrollbar-hide" style="scrollbar-width:none; -ms-overflow-style:none;">
     <div class="projects-track">
       {(() => {
@@ -113,6 +120,7 @@ function bentoSize(index: number) {
   document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('wrapped-projects-container');
     const track = container?.querySelector('.projects-track');
+    const projectsWrapper = document.querySelector('.projects-infinite-wrapper');
     if (!container || !track) return;
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
@@ -235,6 +243,7 @@ function bentoSize(index: number) {
     }
 
     function checkSnap() {
+        if (isPaused) return;
         if (!loopInitialized || singleSetPixelWidth <= 0) return;
         
         if (container.scrollLeft >= singleSetPixelWidth * 2) {
@@ -271,28 +280,98 @@ function bentoSize(index: number) {
       animationId = requestAnimationFrame(autoScroll);
     }
 
-    function animateCardsIn() {
+    function revealCardsImmediately() {
       const cards = Array.from(track.querySelectorAll('.project-item'));
-      requestAnimationFrame(() => {
-        let i = 0;
-        const step = () => {
-          if (i >= cards.length) {
-            setTimeout(() => cards.forEach(c => c.classList.remove('preload')), 600);
-            return;
-          }
-          cards[i].classList.add('loaded');
-          i += 1;
-          setTimeout(() => requestAnimationFrame(step), 40);
-        };
-        step();
+      cards.forEach((card) => {
+        card.classList.remove('preload');
+        card.classList.add('loaded');
       });
     }
 
-    setTimeout(animateCardsIn, 80);
-    setTimeout(() => {
-      initializeLoop();
-      if (!isTouchDevice && loopInitialized) requestAnimationFrame(autoScroll);
-    }, 500);
+    // Set the loop position before revealing cards so the first paint does not
+    // flash the initial set and then jump to the middle duplicate set.
+    initializeLoop();
+    revealCardsImmediately();
+    if (!isTouchDevice && loopInitialized) requestAnimationFrame(autoScroll);
+
+    const FILTER_EXIT_DURATION = 500;
+    const FILTER_EXIT_STAGGER = 45;
+    let filterTransitionId = 0;
+
+    function isInViewport(card) {
+      const rect = card.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth;
+    }
+
+    function animateVisibleCardsOut() {
+      const cards = Array.from(track.querySelectorAll('.project-item')).filter((card) => {
+        return getComputedStyle(card).display !== 'none' && isInViewport(card);
+      });
+
+      cards.forEach((card, index) => {
+        card.classList.remove('filter-enter');
+        card.style.setProperty('--filter-exit-x', index % 2 === 0 ? '-120vw' : '120vw');
+        card.style.setProperty('--filter-exit-delay', `${index * FILTER_EXIT_STAGGER}ms`);
+        card.classList.add('filter-exit');
+      });
+
+      const transitionDuration = cards.length
+        ? FILTER_EXIT_DURATION + (cards.length - 1) * FILTER_EXIT_STAGGER
+        : 0;
+
+      return new Promise((resolve) => setTimeout(resolve, transitionDuration));
+    }
+
+    // Tech filter: animate the current cards out before changing the visible set.
+    async function applyFilter(tag) {
+      const transitionId = ++filterTransitionId;
+      const activeTag = tag ? String(tag).toLowerCase() : null;
+      const hasActiveFilter = Boolean(activeTag);
+
+      isPaused = true;
+      await animateVisibleCardsOut();
+
+      if (transitionId !== filterTransitionId) return;
+
+      projectsWrapper?.classList.toggle('filter-active', hasActiveFilter);
+
+      track.querySelectorAll('.project-item').forEach((card) => {
+        card.classList.remove('filter-enter', 'filter-exit');
+        card.style.removeProperty('--filter-enter-x');
+        card.style.removeProperty('--filter-exit-x');
+        card.style.removeProperty('--filter-exit-delay');
+        card.style.removeProperty('--filter-delay');
+        const cardTags = (card.getAttribute('data-tags') || '')
+          .split(',')
+          .map((t) => t.trim().toLowerCase());
+        const matches = !activeTag || cardTags.includes(activeTag);
+        const isDuplicate = card.getAttribute('data-duplicate') === 'true';
+        const shouldShow = matches && (!hasActiveFilter || !isDuplicate);
+        card.classList.toggle('filtered-out', !shouldShow);
+      });
+
+      isPaused = hasActiveFilter;
+
+      requestAnimationFrame(() => {
+        const nextScrollLeft = hasActiveFilter ? 0 : singleSetPixelWidth;
+        if (hasActiveFilter || nextScrollLeft > 0) {
+          container.scrollLeft = nextScrollLeft;
+          preciseScrollLeft = nextScrollLeft;
+        }
+
+        const enteringCards = Array.from(track.querySelectorAll('.project-item')).filter((card) => {
+          return getComputedStyle(card).display !== 'none' && isInViewport(card);
+        });
+
+        enteringCards.forEach((card, index) => {
+          card.style.setProperty('--filter-enter-x', index % 2 === 0 ? '-120vw' : '120vw');
+          card.style.setProperty('--filter-delay', `${index * 70}ms`);
+          card.classList.add('filter-enter');
+        });
+      });
+    }
+
+    window.addEventListener('tech-filter', (e) => applyFilter(e.detail));
 
     // Track dragging (scroll the container)
     function startTrackDrag(e) {
@@ -369,6 +448,22 @@ function bentoSize(index: number) {
     padding: 2rem;
   }
 
+  .projects-infinite-wrapper.filter-active .projects-track {
+    min-width: 100%;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  :global(.projects-infinite-wrapper.filter-active .project-item) {
+    align-self: center !important;
+    margin-top: 0 !important;
+  }
+
+  .projects-infinite-wrapper.filter-active .scroll-indicators {
+    display: none;
+  }
+
   /* Global styles for dynamic cards */
   :global(.project-item) {
     flex: 0 0 auto;
@@ -392,10 +487,49 @@ function bentoSize(index: number) {
     transform: translateY(-32px) scale(0.995);
     opacity: 0;
   }
+
+  :global(.project-item.filtered-out) {
+    display: none !important;
+  }
   
   :global(.project-item.loaded) {
     transform: translateY(0) scale(1);
     opacity: 1;
+  }
+
+  @keyframes filter-project-enter {
+    from {
+      opacity: 0;
+      transform: translate3d(var(--filter-enter-x, 0px), 1.5rem, 0) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+  }
+
+  @keyframes filter-project-exit {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(var(--filter-exit-x, 120vw), 0, 0) scale(0.88);
+    }
+  }
+
+  :global(.projects-infinite-wrapper .project-item.filter-enter .project-card-visual) {
+    animation: filter-project-enter 650ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--filter-delay, 0ms);
+    will-change: transform, opacity;
+  }
+
+  :global(.projects-infinite-wrapper .project-item.filter-exit .project-card-visual) {
+    animation: filter-project-exit 500ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--filter-exit-delay, 0ms);
+    pointer-events: none;
+    will-change: transform, opacity;
   }
 
   :global(.project-item.dynamic-entry) {
@@ -476,6 +610,13 @@ function bentoSize(index: number) {
 
     :global(.project-item) {
       min-height: 14rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(.projects-infinite-wrapper .project-item.filter-enter .project-card-visual),
+    :global(.projects-infinite-wrapper .project-item.filter-exit .project-card-visual) {
+      animation: none;
     }
   }
 </style>

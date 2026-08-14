@@ -7,43 +7,57 @@ import Dock from '../components/Dock.astro';
 import SpotlightSearch from '../components/SpotlightSearch.astro';
 
 const projects = [
-  { 
-    id: 1, 
-    title: 'Maneja Tu Proyecto', 
-    url: 'https://gestiona-tu-proyecto-frontend.onrender.com/',
-    description: "A project management app with dynamic roles. Learned teamwork and perseverance.",
-    widthClass: 'sm:col-span-2',
+  {
+    id: 13,
+    title: 'MASO',
+    url: 'https://maso2026.vercel.app/',
+    description: "Geospatial platform for ProAves: FastAPI/Docker ingestion pipeline with geometric validation, PostGIS persistence, and incremental deforestation alerts from Global Forest Watch. Includes spatial risk scoring, a React/TypeScript dashboard, and background jobs with exports to CSV, Excel, PDF, GeoJSON, GPKG, SHP, and KML.",
+    tags: ['Python', 'FastAPI', 'React', 'TypeScript', 'Docker', 'PostgreSQL', 'PostGIS', 'SQLAlchemy', 'Geospatial', 'Background Jobs'],
+    widthClass: '',
     heightClass: ''
   },
-  { 
-    id: 2, 
-    title: 'My First Web', 
-    url: 'https://maquicosas.es.tl/Home.htm',
-    description: "My first website from 2010. A nostalgic look at my early web development days.",
-    widthClass: 'sm:col-span-2',
-    heightClass: 'sm:row-span-2'
-  },
-  { 
+  {
     id: 4,
-    title: 'Swiftstock',
+    title: 'SwiftStock',
     url: 'https://swiftstock.io/',
-    description: "All-in-one web platform for managing second-hand mobile phone inventory, sales, and operations.",
+    description: "Multi-store e-commerce platform with custom domains, reactive carts, and configurable catalogs. Built inventory workflows with storage positions and conflict handling, barcode reading with Quagga2, and sales/reconciliation flows covering PDF receipts, taxes, credits, and CSV exports.",
+    tags: ['Laravel', 'PHP', 'MySQL', 'Vue', 'JavaScript', 'Blade', 'Quagga2', 'Vitest', 'E-commerce', 'REST APIs'],
     widthClass: '',
     heightClass: ''
   },
   {
-    id: 5,
-    title: 'ProAves',
-    url: 'https://proaves.org/daypass/',
-    description: "A network of multiple bird reserves in Colombia.",
+    id: 17,
+    title: 'Moo Mobile',
+    url: 'https://moomobile.ca/',
+    description: "One of the first e-commerce storefronts derived from the SwiftStock commerce system, selling refurbished phones.",
+    tags: ['Laravel', 'PHP', 'MySQL', 'Vue', 'E-commerce'],
     widthClass: '',
     heightClass: ''
   },
   {
-    id: 6,
-    title: 'CorporaciónBI',
-    url: 'https://www.corporacionbi.com/gt/bancoindustrial/comparador-de-cuentas/',
-    description: "Cross-page bank account comparator with an embeddable widget for consistent and dynamic comparisons.",
+    id: 14,
+    title: 'Imagine Wireless',
+    url: 'https://imaginewireless.refreshmobile.ca/',
+    description: "Digital signature flow for trade-in processes, persisting signatures and rendering them on reports and receipts. Store-configurable fields via JSON, shipping metadata, and a staged Current → Process → Billed → History workflow. 4,700+ lines of tests with PHPUnit and Jest/Vue Test Utils.",
+    tags: ['Laravel', 'PHP', 'MySQL', 'Vue', 'JavaScript', 'PHPUnit', 'Jest', 'JSON', 'Policies'],
+    widthClass: '',
+    heightClass: ''
+  },
+  {
+    id: 16,
+    title: 'IDX Addons',
+    url: 'https://idxaddons.com/',
+    description: "Custom modules for real-estate platforms on legacy PHP MVC: standardized schemas and admin interfaces, automated batch sync from IDX APIs, leads and listings stats, Follow Up Boss integration, and an AI property search powered by the OpenAI API.",
+    tags: ['PHP', 'Laravel', 'Blade', 'JavaScript', 'MySQL', 'IDX APIs', 'OpenAI', 'REST APIs'],
+    widthClass: '',
+    heightClass: ''
+  },
+  {
+    id: 15,
+    title: 'Nickelcom',
+    url: 'https://nickelcom.refreshmobile.ca/',
+    description: "Audit and reporting module for soft-deleted quotes that rebuilds historical valuations from device condition, defect deductions, store margins, and threshold rounding. OWNER-role authorization, many-to-many user-store-location assignments, and a Vue review interface.",
+    tags: ['Laravel', 'PHP', 'MySQL', 'Vue', 'JSON', 'Soft Deletes', 'Authorization', 'Many-to-Many'],
     widthClass: '',
     heightClass: ''
   },
@@ -51,56 +65,99 @@ const projects = [
     id: 7,
     title: 'Maabi',
     url: 'https://jimcollective.com/maabi/',
-    description: "Web-based mall management system designed to centralize operations for tenants, employees, announcements, and more.",
+    description: "Web-based mall management platform centralizing locations, brands, inventory, and metrics dashboards. Built with Laravel, Livewire, and Filament, using Laravel Queues and Redis for background processing.",
+    tags: ['Laravel', 'PHP', 'MySQL', 'Livewire', 'Filament', 'Redis', 'Queues'],
     widthClass: '',
     heightClass: ''
   },
-  { 
-    id: 3, 
-    title: 'Sell In A Flash', 
-    url: 'https://sell-in-a-flash-17dp.onrender.com/', 
+  {
+    id: 6,
+    title: 'CorporaciónBI',
+    url: 'https://www.corporacionbi.com/gt/bancoindustrial/comparador-de-cuentas/',
+    description: "Service that transforms SOAP responses into frontend-ready data, plus a cross-page bank account comparator widget. Handles data acquisition and validation for bank bonus calculations, with frontend and integration work.",
+    tags: ['PHP', 'JavaScript', 'SOAP', 'REST APIs', 'Frontend'],
+    widthClass: '',
+    heightClass: ''
+  },
+  {
+    id: 1,
+    title: 'Maneja Tu Proyecto',
+    url: 'https://gestiona-tu-proyecto-frontend.onrender.com/',
+    description: "A project management app with dynamic roles. Learned teamwork and perseverance.",
+    tags: ['Web App'],
+    widthClass: 'sm:col-span-2',
+    heightClass: ''
+  },
+  {
+    id: 2,
+    title: 'My First Web',
+    url: 'https://maquicosas.es.tl/Home.htm',
+    description: "My first website from 2010. A nostalgic look at my early web development days.",
+    tags: ['Web', 'HTML'],
+    widthClass: 'sm:col-span-2',
+    heightClass: 'sm:row-span-2'
+  },
+  {
+    id: 3,
+    title: 'Sell In A Flash',
+    url: 'https://sell-in-a-flash-17dp.onrender.com/',
     description: "A group project e-commerce site. My first serious web development experience.",
+    tags: ['E-commerce', 'Web App'],
     widthClass: '',
     heightClass: ''
   },
-  { 
-    id: 8, 
-    title: 'Harvard Memories', 
+  {
+    id: 8,
+    title: 'Harvard Memories',
     url: 'https://harvard-memories.vercel.app/',
     description: "A personal scrapbook from my CS50 course. Showcases pure JavaScript experiments.",
+    tags: ['JavaScript'],
     widthClass: '',
     heightClass: 'sm:row-span-2'
   },
-  { 
-    id: 9, 
-    title: 'DevTo Fun', 
+  {
+    id: 9,
+    title: 'DevTo Fun',
     url: 'https://devto-fun-home.vercel.app/',
     description: "A React-based UI for exploring Dev.to posts with dark/light themes.",
+    tags: ['React', 'JavaScript'],
     widthClass: '',
     heightClass: ''
   },
-  { 
-    id: 10, 
-    title: 'Airman Project', 
+  {
+    id: 10,
+    title: 'Airman Project',
     url: 'https://airmanproject.vercel.app/',
     description: "An e-commerce site using BestBuy's API. A fun collaboration with friends.",
+    tags: ['E-commerce', 'JavaScript'],
     widthClass: 'sm:col-span-2',
     heightClass: 'sm:row-span-2'
   },
-  { 
-    id: 11, 
-    title: 'Vet Análisis Datos', 
+  {
+    id: 11,
+    title: 'Vet Análisis Datos',
     url: 'https://vetanalisisdatos.com/',
     description: "My first paid work: a Spanish data analysis course for veterinarians.",
+    tags: ['Web App'],
     widthClass: '',
     heightClass: ''
   },
-  { 
-    id: 12, 
-    title: 'CS50Thoughts', 
+  {
+    id: 12,
+    title: 'CS50Thoughts',
     url: 'https://cs50thoughts.vercel.app/',
     description: "A platform for sharing thoughts about CS50 with likes, dislikes, and filtering.",
+    tags: ['JavaScript'],
     widthClass: 'sm:col-span-2',
+    heightClass: ''
+  },
+  {
+    id: 5,
+    title: 'ProAves Day Pass',
+    url: 'https://proaves.org/daypass/',
+    description: "A network of multiple bird reserves in Colombia.",
+    tags: ['Web App'],
+    widthClass: '',
     heightClass: ''
   }
 ];

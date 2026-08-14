@@ -4,6 +4,7 @@ interface Props {
     title: string;
     description: string;
     url: string;
+    tags?: string[];
   };
   index: number;
   isDuplicate?: boolean;
@@ -22,6 +23,11 @@ const {
   gradientTitleClass,
   gradientDescClass
 } = Astro.props;
+
+const tags = project.tags || [];
+const visibleTags = tags.slice(0, 3);
+const additionalTagCount = Math.max(tags.length - visibleTags.length, 0);
+const tagAttr = tags.join(',');
 ---
 
 <draggable-project-card
@@ -29,6 +35,7 @@ const {
   data-index={index}
   data-duplicate={isDuplicate ? 'true' : 'false'}
   data-url={project.url}
+  data-tags={tagAttr}
 >
   <div class="project-card-visual glass-card group w-full h-full relative rounded-3xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing">
     <div class="project-card-sheen" aria-hidden="true"></div>
@@ -53,6 +60,20 @@ const {
       <p class={`project-desc project-text-base text-center text-sm line-clamp-3 leading-relaxed ${gradientDescClass} pointer-events-auto`}>
         {project.description}
       </p>
+      {tags.length > 0 && (
+        <div
+          class="project-tags"
+          aria-label={`Technologies: ${tags.join(', ')}`}
+          title={tags.join(', ')}
+        >
+          {visibleTags.map((tag) => (
+            <span class="project-tag">{tag}</span>
+          ))}
+          {additionalTagCount > 0 && (
+            <span class="project-tag project-tag-more">+{additionalTagCount}</span>
+          )}
+        </div>
+      )}
       <span class="project-open-hint" aria-hidden="true">Open project <span>↗</span></span>
     </div>
   </div>
@@ -256,6 +277,44 @@ const {
   .project-title { font-weight: 700; }
   .project-desc { font-weight: 500; color: rgba(0,0,0,0.55); }
 
+  /* Tech tags */
+  .project-tags {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.375rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    margin-top: 0.625rem;
+    padding: 0 0.25rem;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    pointer-events: auto;
+  }
+
+  .project-tag {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.55rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    color: rgba(30, 41, 59, 0.62);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .project-tag-more {
+    background: rgba(0, 122, 255, 0.1);
+    border-color: rgba(0, 122, 255, 0.24);
+    color: #087ef5;
+  }
+
   /* Icons */
   .project-icon {
     position: relative;
@@ -362,6 +421,18 @@ const {
   :root[data-theme="dark"] .window-status,
   :root[data-theme="dark"] .project-open-hint {
     color: rgba(226, 232, 240, 0.58);
+  }
+
+  :root[data-theme="dark"] .project-tag {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: rgba(226, 232, 240, 0.78);
+  }
+
+  :root[data-theme="dark"] .project-tag-more {
+    background: rgba(80, 148, 255, 0.16);
+    border-color: rgba(109, 178, 255, 0.38);
+    color: #8bc4ff;
   }
 
   @media (prefers-reduced-motion: reduce) {

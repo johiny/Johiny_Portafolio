@@ -1,0 +1,191 @@
+---
+interface Props {
+  tags: string[];
+}
+
+const { tags } = Astro.props;
+---
+
+<div class="tech-filter-bar" role="toolbar" aria-label="Filter projects by technology">
+  <div class="tech-filter-scroll">
+    <button type="button" class="tech-filter-chip active" data-tag-filter="all">
+      All
+    </button>
+    {tags.map((tag) => (
+      <button type="button" class="tech-filter-chip" data-tag-filter={tag}>
+        {tag}
+      </button>
+    ))}
+  </div>
+</div>
+
+<style>
+  .tech-filter-bar {
+    position: absolute;
+    top: calc(var(--macbar-height, 32px) + 0.75rem);
+    left: calc(50% + 160px);
+    transform: translateX(-50%);
+    z-index: 30;
+    width: min(calc(100% - 360px), 900px);
+    box-sizing: border-box;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(28px) saturate(145%);
+    -webkit-backdrop-filter: blur(28px) saturate(145%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 20px;
+    box-shadow:
+      0 10px 30px rgba(56, 48, 94, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+
+  .tech-filter-scroll {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.375rem;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 0.5rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 122, 255, 0.48) transparent;
+  }
+
+  .tech-filter-scroll::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .tech-filter-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .tech-filter-scroll::-webkit-scrollbar-thumb {
+    background: rgba(0, 122, 255, 0.48);
+    border-radius: 9999px;
+  }
+
+  .tech-filter-chip {
+    flex: 0 0 auto;
+    padding: 0.3rem 0.9rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(30, 41, 59, 0.7);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .tech-filter-chip:hover {
+    background: rgba(0, 122, 255, 0.12);
+    color: #007AFF;
+    border-color: rgba(0, 122, 255, 0.35);
+  }
+
+  .tech-filter-chip.active {
+    background: #007AFF;
+    color: #ffffff;
+    border-color: #007AFF;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.32);
+  }
+
+  :root[data-theme="dark"] .tech-filter-bar {
+    background: rgba(24, 30, 58, 0.62);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  :root[data-theme="dark"] .tech-filter-chip {
+    color: rgba(226, 232, 240, 0.8);
+  }
+
+  :root[data-theme="dark"] .tech-filter-chip:hover {
+    background: rgba(0, 122, 255, 0.22);
+    color: #6db2ff;
+    border-color: rgba(0, 122, 255, 0.5);
+  }
+
+  :root[data-theme="dark"] .tech-filter-chip.active {
+    background: #007AFF;
+    color: #ffffff;
+    border-color: #007AFF;
+  }
+
+  :root[data-theme="dark"] .tech-filter-scroll {
+    scrollbar-color: rgba(109, 178, 255, 0.62) transparent;
+  }
+
+  :root[data-theme="dark"] .tech-filter-scroll::-webkit-scrollbar-thumb {
+    background: rgba(109, 178, 255, 0.62);
+  }
+
+  @media (max-width: 900px) {
+    .tech-filter-bar {
+      position: static;
+      transform: none;
+      width: 100%;
+      margin-bottom: 1rem;
+      border-radius: 18px;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const bar = document.querySelector('.tech-filter-bar');
+    const scroller = bar?.querySelector('.tech-filter-scroll');
+    if (!bar || !scroller) return;
+
+    scroller.addEventListener('wheel', (event) => {
+      const rawDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+      if (!rawDelta) return;
+
+      const delta = event.deltaMode === 1
+        ? rawDelta * 16
+        : event.deltaMode === 2
+          ? rawDelta * scroller.clientWidth
+          : rawDelta;
+      const maxScrollLeft = scroller.scrollWidth - scroller.clientWidth;
+      const nextScrollLeft = Math.max(0, Math.min(maxScrollLeft, scroller.scrollLeft + delta));
+
+      // Let the page handle the wheel when the filter is already at an edge.
+      if (nextScrollLeft === scroller.scrollLeft) return;
+
+      event.preventDefault();
+      scroller.scrollBy({ left: nextScrollLeft - scroller.scrollLeft, behavior: 'auto' });
+    }, { passive: false });
+
+    function setActive(tag) {
+      bar.querySelectorAll('.tech-filter-chip').forEach((chip) => {
+        const chipTag = chip.getAttribute('data-tag-filter');
+        const isActive = tag === null ? chipTag === 'all' : chipTag === tag;
+        chip.classList.toggle('active', isActive);
+      });
+    }
+
+    bar.addEventListener('click', (e) => {
+      const chip = e.target.closest('.tech-filter-chip');
+      if (!chip) return;
+
+      const chipTag = chip.getAttribute('data-tag-filter');
+      const tag = chipTag === 'all' ? null : chipTag;
+      setActive(tag);
+      chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      window.dispatchEvent(new CustomEvent('tech-filter', { detail: tag }));
+    });
+  })();
+</script>
